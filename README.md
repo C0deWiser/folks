@@ -12,7 +12,7 @@ Pull this package in through Composer (file `composer.json`)...
     "require": {
         "php": ">=7.2.0",
         "laravel/framework": "^6.*",
-        "trunow/rpac": "dev-master"
+        "codewiser/rpac": "dev-master"
     }
 }
 ```
