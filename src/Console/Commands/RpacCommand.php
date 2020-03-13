@@ -1,6 +1,6 @@
 <?php
 
-namespace Trunow\Rpac\Console\Commands;
+namespace Codewiser\Rpac\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;

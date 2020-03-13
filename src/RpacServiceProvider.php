@@ -1,9 +1,9 @@
 <?php
 
-namespace Trunow\Rpac;
+namespace Codewiser\Rpac;
 
 use Illuminate\Support\ServiceProvider;
-use Trunow\Rpac\Middleware\VerifyRole;
+use Codewiser\Rpac\Middleware\VerifyRole;
 
 class RpacServiceProvider extends ServiceProvider
 {

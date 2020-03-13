@@ -4,18 +4,18 @@
  *  Трэйт контроля доступа для модели User на основе ролей
  */
 
-namespace Trunow\Rpac\Traits;
+namespace Codewiser\Rpac\Traits;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Str;
-use Trunow\Rpac\Role;
+use Codewiser\Rpac\Role;
 
 /**
  * Trait Roles add Roles to User model
- * @package Trunow\Rpac\Traits
+ * @package Codewiser\Rpac\Traits
  * @mixin Model
  *
  * @property string $api_token

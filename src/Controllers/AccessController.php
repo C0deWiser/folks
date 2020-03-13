@@ -1,6 +1,6 @@
 <?php
 
-namespace Trunow\Rpac\Controllers;
+namespace Codewiser\Rpac\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

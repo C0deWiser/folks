@@ -1,6 +1,6 @@
 <?php
 
-namespace Trunow\Rpac\Example;
+namespace Codewiser\Rpac\Example;
 
 class Post extends \Illuminate\Database\Eloquent\Model
 {

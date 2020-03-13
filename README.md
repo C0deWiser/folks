@@ -42,7 +42,7 @@ Add the package to your application service providers in `config/app.php` file.
     /**
      * Third Party Service Providers...
      */
-    Trunow\Rpac\RpacServiceProvider::class,
+    Codewiser\Rpac\RpacServiceProvider::class,
 
 ],
 ```
@@ -51,7 +51,7 @@ Add the package to your application service providers in `config/app.php` file.
 
 Publish the package config file and migrations to your application. Run these commands inside your terminal.
 
-    php artisan vendor:publish --provider="Trunow\Rpac\RpacServiceProvider"
+    php artisan vendor:publish --provider="Codewiser\Rpac\RpacServiceProvider"
 
 And also run migrations.
 
@@ -95,7 +95,7 @@ Create policy class extends `RpacPolicy` for your model.
 ```php
 namespace App\Policies;
 
-use Trunow\Rpac\Policies\RpacPolicy;
+use Codewiser\Rpac\Policies\RpacPolicy;
 
 class PostPolicy extends RpacPolicy
 {
@@ -133,7 +133,7 @@ class PostPolicy extends RpacPolicy
 ### Creating Roles
 
 ```php
-use Trunow\Rpac\Role;
+use Codewiser\Rpac\Role;
 
 $adminRole = Role::create([
     'name' => 'Admin',
@@ -203,7 +203,7 @@ if ($user->is(['admin', 'moderator'], true)) {
 It's very simple thanks to `Permission` model.
 
 ```php
-use Trunow\Rpac\Permission;
+use Codewiser\Rpac\Permission;
 
 $createPostPermission = Permission::create([
     'name' => 'Create posts',
@@ -217,7 +217,7 @@ $createPostPermission = Permission::create([
 You can attach permissions to a role (and of course detach them as well).
 
 ```php
-use Trunow\Rpac\Role;
+use Codewiser\Rpac\Role;
 
 $role = Role::find($roleId);
 $role->permissions()->attach($createPostPermission); // permission attached to a role
@@ -238,7 +238,7 @@ Let's say you have an article and you want to edit it.
 
 ```php
 use App\Article;
-use Trunow\Rpac\Permission;
+use Codewiser\Rpac\Permission;
 
 $editArticlesPermission = Permission::create([
     'name' => 'Edit articles',

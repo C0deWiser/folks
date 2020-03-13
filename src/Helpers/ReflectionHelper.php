@@ -1,12 +1,12 @@
 <?php
 
-namespace Trunow\Rpac\Helpers;
+namespace Codewiser\Rpac\Helpers;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
-use Trunow\Rpac\Policies\RpacPolicy;
-use Trunow\Rpac\Role;
+use Codewiser\Rpac\Policies\RpacPolicy;
+use Codewiser\Rpac\Role;
 
 class ReflectionHelper
 {

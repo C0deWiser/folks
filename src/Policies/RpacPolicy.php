@@ -1,6 +1,6 @@
 <?php
 
-namespace Trunow\Rpac\Policies;
+namespace Codewiser\Rpac\Policies;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -8,9 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Support\Str;
-use Trunow\Rpac\Permission;
-use Trunow\Rpac\Role;
-use Trunow\Rpac\Traits\Roles;
+use Codewiser\Rpac\Permission;
+use Codewiser\Rpac\Traits\Roles;
 
 abstract class RpacPolicy
 {

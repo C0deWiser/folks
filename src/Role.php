@@ -1,6 +1,6 @@
 <?php
 
-namespace Trunow\Rpac;
+namespace Codewiser\Rpac;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User;
 
 /**
  * Class Role
- * @package Trunow\Rpac
+ * @package Codewiser\Rpac
  * 
  * @property string $name
  * @property string $slug

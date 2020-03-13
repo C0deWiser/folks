@@ -1,6 +1,6 @@
 <?php
 
-namespace Trunow\Rpac;
+namespace Codewiser\Rpac;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Class Permission
- * @package Trunow\Rpac
+ * @package Codewiser\Rpac
  *
  * @property string $signature
  * @property string $role
@@ -20,8 +20,6 @@ class Permission extends Model
      */
     public static function cached()
     {
-        //TODO Sometimes there is a suck!
-        return Permission::all();
         return Cache::rememberForever(__CLASS__.'\\Cache', function() {
             return Permission::all();
         });

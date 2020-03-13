@@ -1,6 +1,6 @@
 <?php
 
-namespace Trunow\Rpac\Middleware;
+namespace Codewiser\Rpac\Middleware;
 
 use Closure;
 use Illuminate\Contracts\Auth\Guard;

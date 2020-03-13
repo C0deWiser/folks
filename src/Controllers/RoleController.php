@@ -1,10 +1,10 @@
 <?php
 
-namespace Trunow\Rpac\Controllers;
+namespace Codewiser\Rpac\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Trunow\Rpac\Role;
+use Codewiser\Rpac\Role;
 
 class RoleController extends Controller
 {

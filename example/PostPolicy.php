@@ -1,8 +1,8 @@
 <?php
 
-namespace Trunow\Rpac\Example;
+namespace Codewiser\Rpac\Example;
 
-class PostPolicy extends \Trunow\Rpac\Policies\RpacPolicy
+class PostPolicy extends \Codewiser\Rpac\Policies\RpacPolicy
 {
 
     protected $relationships = ['author'];
@@ -11,7 +11,7 @@ class PostPolicy extends \Trunow\Rpac\Policies\RpacPolicy
      * Policy need to know Model it works with
      * @return string
      */
-    protected function model()
+    public function model()
     {
         Post::class;
     }

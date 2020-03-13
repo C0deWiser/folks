@@ -21,15 +21,15 @@ return [
     |--------------------------------------------------------------------------
     |
     | If you want, you can replace default models from this package by models
-    | you created. Have a look at `Trunow\Rpac\\Role` model and
-    | `Trunow\Rpac\\Permission` model.
+    | you created. Have a look at `Codewiser\Rpac\\Role` model and
+    | `Codewiser\Rpac\\Permission` model.
     |
     */
 
     'models' => [
         'user' => App\User::class,
-        'role' => Trunow\Rpac\Role::class,
-        'permission' => Trunow\Rpac\Permission::class,
+        'role' => Codewiser\Rpac\Role::class,
+        'permission' => Codewiser\Rpac\Permission::class,
     ],
 
     /*
