@@ -74,7 +74,7 @@ class ReflectionHelper
      * @return array|string[]
      * @example [Core\Guest, Role\Admin, ...]
      */
-    public function getRoles()
+    public function getNonModelRoles()
     {
         return array_merge(
             $this->applyNamespace(self::RoleNamespace, Role::all()->pluck('slug')->toArray()),
@@ -118,7 +118,7 @@ class ReflectionHelper
     {
         /** @var RpacPolicy $policy */
         $policy = new $policy();
-        return $policy->getNamespace();
+        return $policy->getPolicyNamespace();
     }
 
     /**
@@ -127,11 +127,11 @@ class ReflectionHelper
      * @return array|string[]
      * @example [App\Post\Author, App\Post\Manager]
      */
-    public function getRelationships($policy)
+    public function getModelRoles($policy)
     {
         /** @var RpacPolicy $policy */
         $policy = new $policy();
-        return $this->applyNamespace($this->getNamespace($policy), $policy->getRelationships());
+        return $this->applyNamespace($this->getNamespace($policy), $policy->getModelRoles());
     }
 
     /**
@@ -145,7 +145,8 @@ class ReflectionHelper
     {
         /** @var RpacPolicy $policy */
         $policy = new $policy();
-        return $policy->getPermission($action, $role);
+        $defaults = $policy->getDefaults($action);
+        return $defaults == '*' || in_array($role, (array)$defaults);
     }
 
     /**

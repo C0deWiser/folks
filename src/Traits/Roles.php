@@ -34,13 +34,15 @@ trait Roles
     }
 
     /**
-     * Check if User play every given role(s)
+     * Check if User play every given role(s) — concrete and contextual
      *
      * @param string|array $role
+     * @param Model $context
      * @return bool
      */
-    public function playRole($role)
+    public function playRole($role, Model $context = null)
     {
+        // TODO make support $context
         $role = is_array($role) ? $role : explode(' ', $role);
         return count($role) === $this->roles->whereIn('slug', $role)->count();
     }

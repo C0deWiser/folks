@@ -5,24 +5,6 @@
 
 ### Composer
 
-Pull this package in through Composer (file `composer.json`)...
-
-```js
-{
-    "require": {
-        "php": ">=7.2.0",
-        "laravel/framework": "^6.*",
-        "codewiser/rpac": "dev-master"
-    }
-}
-```
-
-...and run this command inside your terminal.
-
-    composer update
-    
-OR require this package
-
     composer require trunow/rpac:dev-master
 
 ### Service Provider
@@ -115,171 +97,68 @@ class PostPolicy extends RpacPolicy
     {
         return App\Post::class;
     }
-    public function getDefault($action, $role)
+    public function getDefaults($action)
     {
-        // Admin has full access
-        if ($role == 'Role\Admin') {
-            return true;
+        if ($action == 'view') {
+            // Any user may view
+            return '*';
         }
-        // Other rules are not defined and may be set in administrative interface.
-        return null;
+    
+        // Other actions allowed only to Admin
+        return 'Role\Admin';
     }
 }
 ```
 
+### Relationships aka Model Roles
 
+Policy provides you way to define relationships between User and Model. Relationship is a role, that has sense only in some context.
 
-
-### Creating Roles
-
-```php
-use Codewiser\Rpac\Role;
-
-$adminRole = Role::create([
-    'name' => 'Admin',
-    'slug' => 'admin',
-    'description' => '', // optional
-]);
-```
-
-### Attaching And Detaching Roles
-
-It's standart. There is `BelongsToMany` relationship between `User` and `Role` model.
+Defining relationship
 
 ```php
-use App\User;
+class PostPolicy extends RpacPolicy
+{
+    protected $relationships = ['author'];
+    
+    protected function model()
+    {
+        return App\Post::class;
+    }
+    
+    public function getDefaults($action)
+    {
+        if ($action == 'view') {
+            // Any user may view
+            return '*';
+        }
 
-$user = User::find($id);
-$user->roles()->attach($adminRole); // you can pass whole object, or just an id
-```
-
-```php
-$user->roles()->detach($adminRole); // in case you want to detach role
-$user->roles()->detach(); // in case you want to detach all roles
-```
-
-### Checking For Roles
-
-You can now check if the user has required role.
-
-```php
-if ($user->is('admin')) { // pass role slug here
-    // ...
+        if ($action == 'update') {
+            // Author may edit his post
+            return ['Post\Author', 'Role\Admin'];
+        }
+    
+        // Other actions allowed only to Admin
+        return 'Role\Admin';
+    }
 }
 ```
 
-You can also do this:
-
+Defining relationship scope:
 ```php
-if ($user->isAdmin()) {
-    //
+class Post extends Model
+{
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id');
+    }
+    public function scopeRelationshipAuthor(Builder $query, $user)
+    {
+        $query->where('author_id', $user->getKey());
+    }
 }
 ```
 
-And of course, there is a way to check for multiple roles:
+## Conclusion
 
-```php
-if ($user->is(['admin', 'moderator'])) { 
-    /*
-    | It is same as:
-    | $user->isOr(['admin', 'moderator'])
-    */
-
-    // if user has at least one role
-}
-
-if ($user->is(['admin', 'moderator'], true)) {
-    /*
-    | Or alternatively:
-    | $user->isAnd(['admin', 'moderator'])
-    */
-
-    // if user has all roles
-}
-```
-
-### Creating Permissions
-
-It's very simple thanks to `Permission` model.
-
-```php
-use Codewiser\Rpac\Permission;
-
-$createPostPermission = Permission::create([
-    'name' => 'Create posts',
-    'entity' => 'App\Post',
-    'action' => 'create',
-]);
-```
-
-### Attaching And Detaching Permissions
-
-You can attach permissions to a role (and of course detach them as well).
-
-```php
-use Codewiser\Rpac\Role;
-
-$role = Role::find($roleId);
-$role->permissions()->attach($createPostPermission); // permission attached to a role
-```
-
-```php
-$role->permissions()->detach($createPostPermission); // in case you want to detach permission
-$role->permissions()->detach(); // in case you want to detach all permissions
-```
-
-### Checking For Permissions
-
-TODO
-
-### Entity Check
-
-Let's say you have an article and you want to edit it.
-
-```php
-use App\Article;
-use Codewiser\Rpac\Permission;
-
-$editArticlesPermission = Permission::create([
-    'name' => 'Edit articles',
-    'entity' => 'App\Article',
-    'action' => 'edit',
-]);
-
-$user->roles()->first()->permissions()->attach($editArticlesPermission);
-
-$article = Article::find(1);
-
-if ($user->can('edit', $article)) { 
-    //
-}
-```
-
-### Blade Extensions
-
-There are four Blade extensions. Basically, it is replacement for classic if statements.
-
-```php
-@role('admin') // @if(Auth::check() && Auth::user()->is('admin'))
-    // user is admin
-@endrole
-```
-
-### Middleware
-
-This package comes with `VerifyRole` middleware. You can easily protect your routes.
-
-```php
-$router->get('/example', [
-    'as' => 'example',
-    'middleware' => 'role:admin,manager',
-    'uses' => 'ExampleController@index',
-]);
-```
-## Config File
-
-You can change connection for models, models path and there is also a handy pretend feature. Have a look at config file for more information.
-
-## License
-
-This package is free software distributed under the terms of the MIT license.
+Use this Policy as any other Laravel Policy

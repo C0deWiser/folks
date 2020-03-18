@@ -19,7 +19,7 @@ abstract class RpacPolicy
     const RoleNamespace = 'Role';
 
     /**
-     * Set of relationships between User and Model
+     * Set of relationships (aka Model Roles) between User and Model
      * @var array
      * @example ['owner', 'manager']
      */
@@ -37,7 +37,7 @@ abstract class RpacPolicy
      * @param $data
      * @return array|string
      */
-    private function applyNamespace($namespace, $data)
+    protected function applyNamespace($namespace, $data)
     {
         if (is_array($data)) {
             return array_map(function ($n) use ($namespace) {
@@ -49,14 +49,14 @@ abstract class RpacPolicy
     }
 
     /**
-     * The Policy pseudo-name for usage in permission table
+     * The Policy pseudo-name for use in permission table
      * @return string
      */
-    public function getNamespace()
+    public function getPolicyNamespace()
     {
-        // Will use Policy name without Policy word
+        // Will use Policy::class name without Policy word
         // App\Policies\PostPolicy
-        // to
+        // ->
         // App\Post
 
         $class = get_class($this);
@@ -66,7 +66,7 @@ abstract class RpacPolicy
     }
 
     /**
-     * Policy need to know Model name it works with
+     * Policy need to know Model::class name it works with
      * @return string
      */
     abstract public function model();
@@ -74,7 +74,7 @@ abstract class RpacPolicy
     /**
      * @return array
      */
-    public function getRelationships(): array
+    public function getModelRoles(): array
     {
         return $this->relationships;
     }
@@ -82,33 +82,10 @@ abstract class RpacPolicy
     /**
      * Default (built-in) permissions
      * @param string $action
-     * @param string $role
-     * @return bool|null return null, if there is no default rule
+     * @return array|string|null|void return namespaced(!) roles, allowed to $action
      */
-    public function getPermission($action, $role)
+    public function getDefaults($action)
     {
-        return null;
-    }
-
-    /**
-     * Return Default (built-in) permissions for model+user
-     * @param string $action
-     * @param User|null $user
-     * @param Model|null $model
-     * @return bool|null
-     */
-    protected function getPermissions($action, ?User $user, Model $model = null)
-    {
-        $default = null;
-        $roles = $this->getRoles($user, $model);
-
-        foreach ($roles as $role) {
-            if (!is_null($rule = $this->getPermission($action, $role))) {
-                $default = $rule ? : ($default ? : $rule);
-            }
-        }
-
-        return $default;
     }
 
     public function viewAny(?User $user)
@@ -147,11 +124,16 @@ abstract class RpacPolicy
         return $this->authorize('forceDelete', $user, $model);
     }
 
-    protected function getScopeName($relationship)
+    /**
+     * Get method name to scope model with given model-role
+     * @param $role
+     * @return string
+     */
+    protected function getScopeName($role)
     {
-        $scopeName = 'relationship' . Str::studly($relationship); // relationshipRole()
+        $scopeName = 'relationship' . Str::studly($role); // relationshipManager()
         return $scopeName;
-//        $methodName = 'scope' . Str::studly($scopeName); // scopeRelationshipRole()
+//        $methodName = 'scope' . Str::studly($scopeName); // scopeRelationshipManager()
 //        return method_exists($this->model(), $methodName) ? $scopeName : null;
     }
 
@@ -185,7 +167,7 @@ abstract class RpacPolicy
             // Then scope model with that query
             // If model has no relationship scopes, will return empty scope
 
-            if ($user && ($relationships = $this->getRelationshipsForSignature($signature))) {
+            if ($user && ($relationships = $this->getModelRolesForSignature($signature))) {
                 $model::addGlobalScope($globalScopeName, function (Builder $query) use ($relationships, $user) {
                     foreach ($relationships as $relationship) {
                         $scopeName = $this->getScopeName($relationship);
@@ -227,7 +209,7 @@ abstract class RpacPolicy
      * @param User|Roles|null $user
      * @return array
      */
-    private function getUserRoles(?User $user)
+    protected function getUserNonModelRoles(?User $user)
     {
         if ($user) {
             if (!isset($this->cache["user-roles"])) {
@@ -246,7 +228,7 @@ abstract class RpacPolicy
      * @param $model
      * @return array
      */
-    private function getUserRelationships(?User $user = null, ?Model $model = null)
+    protected function getUserModelRoles(?User $user = null, ?Model $model = null)
     {
         if ($user) {
             $roles = $this->applyNamespace(self::BuiltInNamespace, ['any']);
@@ -257,7 +239,7 @@ abstract class RpacPolicy
                         // Check if given Model relates to User through $relationship
                         $query->where($model->getKeyName(), $model->getKey());
                         if ($query->count()) {
-                            $roles[] = $this->applyNamespace($this->getNamespace(), $relationship);
+                            $roles[] = $this->applyNamespace($this->getPolicyNamespace(), $relationship);
                         }
                     }
                 }
@@ -277,23 +259,17 @@ abstract class RpacPolicy
      */
     protected function getSignature($action)
     {
-        return $this->getNamespace() . ':' . $action;
+        return $this->getPolicyNamespace() . ':' . $action;
     }
 
     /**
-     * Returns relationships, allowed to perform given action
+     * Returns model roles without namespace(!), allowed to perform given action
      * @param string $signature
      * @return array
      */
-    protected function getRelationshipsForSignature($signature)
+    protected function getModelRolesForSignature($signature)
     {
-        $relationships = Permission::cached()->filter(
-            function (Permission $perm) use ($signature) {
-                return (
-                    $perm->signature == $signature
-                );
-            }
-        )->pluck('role')->toArray();
+        $relationships = $this->getPermissions($signature);
 
         // Clean out namespaces
         $relationships = array_map(function ($n) {
@@ -318,63 +294,47 @@ abstract class RpacPolicy
      */
     protected function authorize($action, ?User $user, Model $model = null)
     {
-        $default = $this->getPermissions($action, $user, $model);
+        $roles = $this->getUserRoles($user, $model);
+        $defaults = $this->getDefaults($action);
 
-        if (is_null($default)) {
-            // There is no default rule
-            $permissions = $this->readPermissions(
-                $this->getSignature($action),
-                $this->getRoles($user, $model)
-            );
-
-            // If we have at least one permission, then User allowed to action
-            return (boolean)$permissions->count();
-        } else {
-            return $default;
+        if ($defaults == '*') {
+            return true;
         }
+
+        return
+            array_intersect($roles, (array)$defaults)
+            ||
+            array_intersect($roles, $this->getPermissions($this->getSignature($action)));
     }
 
     /**
      * Roles and Relationships, that User plays in given Model
      * @param User|null $user
-     * @param Model|null $model
+     * @param Model|null $context
      * @return array
      */
-    protected function getRoles(?User $user, Model $model = null)
+    protected function getUserRoles(?User $user, Model $context = null)
     {
-        // If no-model, than User plays only his concrete roles
-        // Anon User plays guest role
         $roles = array_merge(
-            $this->getUserRelationships($user, $model),
-            $this->getUserRoles($user)
+            $this->getUserModelRoles($user, $context),
+            $this->getUserNonModelRoles($user)
         );
-
-//        dump("User: {$user}");
-//        dump("Action: {$action}");
-//        dump("Against: {$model}");
-//        dump(array_merge($roles));
-
         return $roles;
     }
 
     /**
-     * Return permissions for signatures and roles
+     * Get roles for signature
      * @param string $signature
-     * @param array|string $roles
-     * @return Collection|Permission[]
+     * @return array
      */
-    protected function readPermissions($signature, $roles)
+    protected function getPermissions($signature)
     {
         // Take permissions with signature and user role
         $permissions = Permission::cached()->filter(
-            function (Permission $perm) use ($signature, $roles) {
-                return (
-                    $perm->signature == $signature &&
-                    in_array($perm->role, (array)$roles)
-                );
+            function (Permission $perm) use ($signature) {
+                return ($perm->signature == $signature);
             }
         );
-//        dump($permissions->toArray());
-        return $permissions;
+        return $permissions->pluck('role')->toArray();
     }
 }
