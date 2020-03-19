@@ -1,11 +1,6 @@
 # Roles/Permissions Access Control [RPAC] Laravel Package
 
-
 ## Installation
-
-### Composer
-
-    composer require trunow/rpac:dev-master
 
 ### Service Provider
 
