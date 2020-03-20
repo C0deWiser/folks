@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Gate;
  */
 trait Permissions
 {
+    /**
+     * Get list of non-model actions allowed to given User
+     * @param User|null $user
+     * @return array|string[]
+     */
     public static function authorizedActions(?User $user)
     {
         if (($policy = Gate::getPolicyFor(static::class)) && $policy instanceof RpacPolicy) {
@@ -23,7 +28,7 @@ trait Permissions
         }
     }
     /**
-     * Get list of actions allowed to given User against current Model
+     * Get list of model actions allowed to given User
      * @param User|null $user
      * @return array|string[]
      */
