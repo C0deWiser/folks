@@ -6,11 +6,14 @@ namespace Codewiser\Rpac\Traits;
 
 use Codewiser\Rpac\Policies\RpacPolicy;
 use \Illuminate\Contracts\Auth\Authenticatable as User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 /**
  * Get list of authorized actions (uses Laravel Policies)
  * @package Codewiser\Rpac\Traits
+ *
+ * @property-read array $authorizedActions
  */
 trait Permissions
 {
@@ -39,5 +42,10 @@ trait Permissions
         } else {
             return [];
         }
+    }
+
+    public function getAuthorizedActionsAttribute()
+    {
+        return $this->getAuthorizedActions(Auth::user());
     }
 }
