@@ -297,14 +297,12 @@ abstract class RpacPolicy
     protected function authorize($action, ?User $user, Model $model = null)
     {
         $roles = $this->getUserRoles($user, $model);
-        $defaults = $this->getDefaults($action);
-
-        if ($defaults == '*') {
-            return true;
-        }
+        $defaults = (array)$this->getDefaults($action);
 
         return
-            array_intersect($roles, (array)$defaults)
+            in_array('*', $defaults)
+            ||
+            array_intersect($roles, $defaults)
             ||
             array_intersect($roles, $this->getPermissions($this->getSignature($action)));
     }
