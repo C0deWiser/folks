@@ -154,6 +154,17 @@ class Post extends Model
 }
 ```
 
+## Getting abilities
+
+To build proper User Interface you need to know whether User allowed to create or edit Model.
+You may collect full list of abilities using `Policy::getAbilities()` method.
+
+```php
+$post = Post::find($id);
+$attributes = $post->getAttributes();
+$abilities = (new PostPolicy())->getAbilities(Auth::user(), $post);
+```
+
 ## Conclusion
 
 Use this Policy as any other Laravel Policy
