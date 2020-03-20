@@ -342,7 +342,7 @@ abstract class RpacPolicy
      * Get actions allowed to the User in given Model
      * @param User|null $user
      * @param Model|null $context
-     * @return Collection
+     * @return array|string[]
      */
     public function getAbilities(?User $user, Model $context = null)
     {
@@ -367,6 +367,6 @@ abstract class RpacPolicy
             }
         }
 
-        return collect($abilities);
+        return $abilities;
     }
 }
