@@ -341,7 +341,7 @@ abstract class RpacPolicy
     }
 
     /**
-     * Get all actions allowed to the User in given Model
+     * Get actions allowed to the User in given Model
      * @param User|null $user
      * @param Model|null $context
      * @return Collection
@@ -364,7 +364,9 @@ abstract class RpacPolicy
         }
 
         foreach ($actions as $action) {
-            $abilities[$action] = $this->authorize($action, $user, $context);
+            if ($this->authorize($action, $user, $context)) {
+                $abilities[] = $action;
+            }
         }
 
         return collect($abilities);
