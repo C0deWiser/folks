@@ -4,11 +4,9 @@ namespace Codewiser\Rpac\Policies;
 
 use Codewiser\Rpac\Helpers\ReflectionHelper;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Auth\User;
+use \Illuminate\Contracts\Auth\Authenticatable as User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Str;
 use Codewiser\Rpac\Permission;
 use Codewiser\Rpac\Traits\Roles;
@@ -186,7 +184,7 @@ abstract class RpacPolicy
                 });
             }
 
-        } else {
+        //} else {
             // User has total access to whole recordSet
         }
     }

@@ -5,7 +5,7 @@ namespace Codewiser\Rpac\Traits;
 
 
 use Codewiser\Rpac\Policies\RpacPolicy;
-use Illuminate\Foundation\Auth\User;
+use \Illuminate\Contracts\Auth\Authenticatable as User;
 use Illuminate\Support\Facades\Gate;
 
 /**
