@@ -348,12 +348,10 @@ abstract class RpacPolicy
 
         try {
             $helper = new ReflectionHelper();
-            $actions = $helper->getNonModelActions(get_class($this));
             if ($context) {
-                $actions = array_merge(
-                    $actions,
-                    $helper->getModelActions(get_class($this))
-                );
+                $actions = $helper->getModelActions(get_class($this));
+            } else {
+                $actions = $helper->getNonModelActions(get_class($this));
             }
         } catch (\ReflectionException $e) {
             $actions = [];
