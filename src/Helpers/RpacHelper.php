@@ -136,8 +136,10 @@ class RpacHelper
      */
     public function getModelRoles()
     {
+        /** @var RPAC $model */
         $model = $this->model;
-        return self::applyNamespace($this->getNamespace(), (new $model())->relationships);
+        $model = new $model();
+        return $model->getRelationshipListing();
     }
 
     /**

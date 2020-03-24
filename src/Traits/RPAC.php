@@ -109,6 +109,20 @@ trait RPAC
     }
 
     /**
+     * Get listing of defined relationships, isolated with Policy pseudo-name
+     * @return array
+     */
+    public function getRelationshipListing()
+    {
+        $relationships = [];
+        $policy = self::getPolicy();
+        foreach ($this->relationships as $relationship) {
+            $relationships[] = $policy->getNamespace() . '\\' . Str::studly($relationship);
+        }
+        return $relationships;
+    }
+
+    /**
      * Scope will limit Model to only records related to given User
      * @param Builder $query
      * @param $relationship
@@ -122,6 +136,9 @@ trait RPAC
             // no records
             return $query->whereKey(0);
         }
+
+        // clear relationship from namespace
+        $relationship = Str::afterLast($relationship, '\\');
 
         // if $relationship is author or chief_officer
         $single = Str::camel($relationship); // author() or chiefOfficer()
@@ -305,35 +322,33 @@ trait RPAC
     protected function getAuthorizedNonModelRoles($action)
     {
         // Keep only non-model roles
-        $roles = array_intersect(
-            static::getPolicy()->getPermissions($action),
-            array_merge(['*'], RpacHelper::getNonModelRoles())
-        );
+        $roles = static::getPolicy()->getPermissions($action);
 
-        return $roles;
+        if (in_array('*', $roles)) {
+            // All non-model roles allowed
+            return RpacHelper::getNonModelRoles();
+        } else {
+            // Some non-model roles allowed
+            return array_intersect($roles, RpacHelper::getNonModelRoles());
+        }
     }
 
     /**
-     * Get model roles without namespace(!), allowed to perform given action
+     * Get model roles, allowed to perform given action
      * @param string $action
      * @return array of roles
      */
     protected function getAuthorizedModelRoles($action)
     {
-        // Clean out namespaces
         // Keep only model roles
-        $relationships = array_map(function ($n) {
-            $n = explode('\\', $n);
-            $n = array_pop($n);
-            return Str::snake($n);
-        }, static::getPolicy()->getPermissions($action));
+        $relationships = static::getPolicy()->getPermissions($action);
 
         if (in_array('*', $relationships)) {
             // All model roles allowed
-            return $this->relationships;
+            return $this->getRelationshipListing();
         } else {
             // Some model roles allowed
-            return array_intersect($relationships, $this->relationships);
+            return array_intersect($relationships, $this->getRelationshipListing());
         }
     }
 
