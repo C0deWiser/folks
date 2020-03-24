@@ -2,17 +2,31 @@
 
 namespace Codewiser\Rpac\Helpers;
 
+use Codewiser\Rpac\Traits\RPAC;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Codewiser\Rpac\Policies\RpacPolicy;
 use Codewiser\Rpac\Role;
 
-class ReflectionHelper
+class RpacHelper
 {
+    /**
+     * @var RpacPolicy
+     */
+    protected $policy;
 
-    const BuiltInNamespace = 'Core';
-    const RoleNamespace = 'Role';
+    /**
+     * @var string
+     */
+    protected $model;
+
+    public function __construct(string $model)
+    {
+        $this->model = $model;
+        $this->policy = $model::getPolicy();
+    }
 
     /**
      * Prepend namespace to string or array of strings
@@ -20,7 +34,7 @@ class ReflectionHelper
      * @param $data
      * @return array|string
      */
-    private function applyNamespace($namespace, $data)
+    public static function applyNamespace($namespace, $data)
     {
         if (is_array($data)) {
             return array_map(function ($n) use ($namespace) {
@@ -32,27 +46,26 @@ class ReflectionHelper
     }
 
     /**
-     * Get full list of policies
+     * Get full list of Models with RpacPolicy
      * @return array|string[]
-     * @example [App\Policies\PostPolicy, ...]
      */
-    public function getPolicies()
+    public static function getRpacModels()
     {
         $models = [];
 
-        foreach ($this->scanDir(app_path()) as $file) {
+        foreach (self::scanDir(app_path()) as $file) {
             $className = Str::replaceFirst(app_path() . '/', '', $file);
             $className = str_replace('/', '\\', $className);
             $className = app()->getNamespace() . substr($className,0,-4);
-            if ($policy = Gate::getPolicyFor($className)) {
-                $models[] = get_class($policy);
+            if (($policy = Gate::getPolicyFor($className)) && $policy instanceof RpacPolicy) {
+                $models[] = $className;
             }
         }
 
         return $models;
     }
 
-    protected function scanDir($path)
+    protected static function scanDir($path)
     {
         $files = [];
 
@@ -60,7 +73,7 @@ class ReflectionHelper
             if ($file === '.' or $file === '..') continue;
             $filename = $path . '/' . $file;
             if (is_dir($filename)) {
-                $files = array_merge($files, $this->scanDir($filename));
+                $files = array_merge($files, self::scanDir($filename));
             } else {
                 $files[] = $filename;
             }
@@ -74,91 +87,80 @@ class ReflectionHelper
      * @return array|string[]
      * @example [Core\Guest, Role\Admin, ...]
      */
-    public function getNonModelRoles()
+    public static function getNonModelRoles()
     {
         return array_merge(
-            $this->applyNamespace(self::RoleNamespace, Role::all()->pluck('slug')->toArray()),
-            $this->applyNamespace(self::BuiltInNamespace, ['guest', 'any'])
+            Role::all()->pluck('slug')->toArray(),
+            ['guest', 'any']
         );
     }
 
     /**
      * Get list of model actions of given policy
-     * @param string $policy
      * @return array|string[]
      * @throws \ReflectionException
      * @example [view, update, delete, ...]
      */
-    public function getModelActions($policy)
+    public function getModelActions()
     {
-        return $this->getActions($policy, 'model');
+        return $this->getActions('model');
     }
 
     /**
      * Get list of non-model actions of given policy
-     * @param string $policy
      * @return array|string[]
      * @throws \ReflectionException
      * @example [viewAny, create]
      */
-    public function getNonModelActions($policy)
+    public function getNonModelActions()
     {
-        return $this->getActions($policy, 'non-model');
+        return $this->getActions('non-model');
     }
 
     /**
      * Return namespace, used by the policy.
      * Keep in mind, that different policies may share one namespace.
      * In that case those policies are identical from RPAC point of view.
-     * @param string $policy
      * @return string
      * @example App\Settings
      */
-    public function getNamespace($policy)
+    public function getNamespace()
     {
-        /** @var RpacPolicy $policy */
-        $policy = new $policy();
-        return $policy->getPolicyNamespace();
+        return $this->policy->getNamespace();
     }
 
     /**
      * Return all relationships between user and model, declared by given policy. Applicable only to model events
-     * @param string $policy
      * @return array|string[]
      * @example [App\Post\Author, App\Post\Manager]
      */
-    public function getModelRoles($policy)
+    public function getModelRoles()
     {
-        /** @var RpacPolicy $policy */
-        $policy = new $policy();
-        return $this->applyNamespace($this->getNamespace($policy), $policy->getModelRoles());
+        $model = $this->model;
+        return self::applyNamespace($this->getNamespace(), (new $model())->relationships);
     }
 
     /**
      * Return default rule. If set, you can not override it from user interface
-     * @param string $policy
      * @param string $action
      * @param string $role
      * @return bool|null
      */
-    public function getBuiltInPermission($policy, $action, $role)
+    public function getBuiltInPermission($action, $role)
     {
-        /** @var RpacPolicy $policy */
-        $policy = new $policy();
-        $defaults = $policy->getDefaults($action);
+        $defaults = $this->policy->getDefaults($action);
         return $defaults == '*' || in_array($role, (array)$defaults);
     }
 
     /**
      * Returns list of available Policy actions
-     * @param string $policy
      * @param string $option {model => returns actions for model; non-model => returns actions for non-model}
      * @return array
      * @throws \ReflectionException
      */
-    protected function getActions(string $policy, $option = null)
+    protected function getActions($option = null)
     {
-        $reflection = new \ReflectionClass($policy);
+        $reflection = new \ReflectionClass($this->policy);
         return array_values(
             array_map(function (\ReflectionMethod $n) {
                 return $n->name;

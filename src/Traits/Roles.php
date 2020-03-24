@@ -34,7 +34,7 @@ trait Roles
     }
 
     /**
-     * Check if User play every given role(s) — concrete and contextual
+     * Check if User play every given role(s) — model and non-model
      *
      * @param string|array $role
      * @param Model $context
