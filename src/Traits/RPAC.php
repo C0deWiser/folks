@@ -103,7 +103,7 @@ trait RPAC
         $relationships = [];
         $policy = static::getPolicy();
         
-        foreach ($this->relationships as $relationship) {
+        foreach ((array)$this->relationships as $relationship) {
             $relationships[] = $policy->getNamespace() . '\\' . Str::studly($relationship);
         }
 
