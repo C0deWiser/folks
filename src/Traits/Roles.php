@@ -30,7 +30,12 @@ trait Roles
      */
     public function roles()
     {
-        return $this->belongsToMany(Role::class)->withTimestamps();
+        return $this->belongsToMany(
+            Role::class,
+            'role_user',
+            'user_id',
+            'role'
+        )->withTimestamps();
     }
 
     /**
@@ -39,7 +44,7 @@ trait Roles
      */
     public function getRoles()
     {
-        return array_merge(['any'], $this->roles->pluck('slug')->toArray());
+        return array_merge(['any'], $this->roles->keys()->toArray());
     }
 
     /**
@@ -53,7 +58,7 @@ trait Roles
     {
         // TODO make support $context
         $role = is_array($role) ? $role : explode(' ', $role);
-        return count($role) === $this->roles->whereIn('slug', $role)->count();
+        return count($role) === $this->roles()->whereIn('id', $role)->count();
     }
 
     public static function boot()

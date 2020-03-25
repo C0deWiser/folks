@@ -9,19 +9,21 @@ use Illuminate\Foundation\Auth\User;
 /**
  * Class Role
  * @package Codewiser\Rpac
- * 
+ *
+ * @property string $id
  * @property string $name
- * @property string $slug
  * @property string $description
  */
 class Role extends Model
 {
+    public $incrementing = false;
+    protected $keyType = 'string';
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['name', 'slug', 'description'];
+    protected $fillable = ['id', 'name', 'description'];
 
     /**
      * Get list of all defined roles (slugs)
@@ -29,16 +31,21 @@ class Role extends Model
      */
     public static function allSlugs()
     {
-        return array_merge(['any', 'guest'], static::all()->pluck('slug')->toArray());
+        return array_merge(['any', 'guest'], static::all()->keys()->toArray());
     }
 
     /**
-     * Role belongs to many users.
+     * Role belongs to many users
      *
      * @return BelongsToMany
      */
     public function users()
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsToMany(
+            config('rpac.models.user'),
+            'role_user',
+            'role',
+            'user_id'
+        )->withTimestamps();
     }
 }

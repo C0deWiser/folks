@@ -27,9 +27,7 @@ return [
     */
 
     'models' => [
-        'user' => App\User::class,
-        'role' => Codewiser\Rpac\Role::class,
-        'permission' => Codewiser\Rpac\Permission::class,
+        'user' => App\User::class
     ],
 
     /*
