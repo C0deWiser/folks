@@ -28,9 +28,7 @@ use Illuminate\Support\Str;
  * For 'manager' relationship we assume managers() relation.
  * Etc.
  *
- * @property-read array $relationships Set of relationships (aka Model Roles) between User and Model
  * @property-read array $authorizedActions
- *
  */
 trait RPAC
 {
@@ -57,13 +55,7 @@ trait RPAC
         if ($policy = self::getPolicy()) {
             $abilities = [];
 
-            try {
-                $actions = (new RpacHelper(static::class))->getNonModelActions();
-            } catch (\ReflectionException $e) {
-                $actions = [];
-            }
-
-            foreach ($actions as $action) {
+            foreach ($policy->getNonModelActions() as $action) {
                 if ($policy->$action($user)) {
                     $abilities[] = $action;
                 }
@@ -85,13 +77,7 @@ trait RPAC
         if ($policy = self::getPolicy()) {
             $abilities = [];
 
-            try {
-                $actions = (new RpacHelper(get_class($this)))->getModelActions();
-            } catch (\ReflectionException $e) {
-                $actions = [];
-            }
-
-            foreach ($actions as $action) {
+            foreach ($policy->getModelActions() as $action) {
                 if ($policy->$action($user, $this)) {
                     $abilities[] = $action;
                 }
@@ -109,16 +95,18 @@ trait RPAC
     }
 
     /**
-     * Get listing of defined relationships, isolated with Policy pseudo-name
+     * Get listing of defined relationships (qualified names)
      * @return array
      */
     public function getRelationshipListing()
     {
         $relationships = [];
-        $policy = self::getPolicy();
+        $policy = static::getPolicy();
+        
         foreach ($this->relationships as $relationship) {
             $relationships[] = $policy->getNamespace() . '\\' . Str::studly($relationship);
         }
+
         return $relationships;
     }
 
@@ -130,26 +118,24 @@ trait RPAC
      * @return Builder
      * @throws RpacException
      */
-    public function scopeRelated(Builder $query, $relationship, ?User $user)
+    public
+    function scopeRelated(Builder $query, $relationship, ?User $user)
     {
         if ($user == null) {
             // no records
             return $query->whereKey(0);
         }
 
-        // clear relationship from namespace
-        $relationship = Str::afterLast($relationship, '\\');
+        $relationship = Str::afterLast($relationship, '\\'); // clear relationship from namespace
+        $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
+        $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
 
-        // if $relationship is author or chief_officer
-        $single = Str::camel($relationship); // author() or chiefOfficer()
-        $plural = Str::pluralStudly($single); // authors() or chiefOfficers()
-
-        if (method_exists($this, $single)) {
+        if (method_exists($this, $singleRelation)) {
             // Single
-            $relation = $this->$single();
-        } elseif (method_exists($this, $plural)) {
+            $relation = $this->$singleRelation();
+        } elseif (method_exists($this, $pluralRelation)) {
             // Plural
-            $relation = $this->$plural();
+            $relation = $this->$pluralRelation();
         } else {
             $relation = null;
         }
@@ -168,7 +154,8 @@ trait RPAC
      * @return Builder
      * @throws RpacException
      */
-    private function applyScopeForRelation(Builder $query, Relation $relation, User $user)
+    private
+    function applyScopeForRelation(Builder $query, Relation $relation, User $user)
     {
         if ($relation instanceof HasOneOrMany) {
             return $this->applyScopeForHasOneOrManyRelation($query, $relation, $user);
@@ -177,6 +164,7 @@ trait RPAC
         } elseif ($relation instanceof BelongsToMany) {
             return $this->applyScopeForBelongsToManyRelation($query, $relation, $user);
         } else {
+            // Will never thrown
             throw new RpacException("Not implemented");
         }
     }
@@ -187,7 +175,8 @@ trait RPAC
      * @param User|Model $user
      * @return Builder
      */
-    private function applyScopeForHasOneOrManyRelation(Builder $query, HasOneOrMany $relation, User $user)
+    private
+    function applyScopeForHasOneOrManyRelation(Builder $query, HasOneOrMany $relation, User $user)
     {
         // Relation means that one User has one This
         // hasOne(User::class, foreignKey, localKey);
@@ -209,7 +198,8 @@ trait RPAC
      * @param User|Model $user
      * @return Builder
      */
-    private function applyScopeForBelongsToRelation(Builder $query, BelongsTo $relation, User $user)
+    private
+    function applyScopeForBelongsToRelation(Builder $query, BelongsTo $relation, User $user)
     {
         // Relation means that one User has many of This
         // BelongsTo(User::class, foreignKey, ownerKey);
@@ -232,7 +222,8 @@ trait RPAC
      * @param User|Model $user
      * @return Builder
      */
-    private function applyScopeForBelongsToManyRelation(Builder $query, BelongsToMany $relation, User $user)
+    private
+    function applyScopeForBelongsToManyRelation(Builder $query, BelongsToMany $relation, User $user)
     {
         // Relation means that many Users have many of This
         // BelongsToMany(User::class, table, foreignPivotKey, relatedPivotKey, parentKey, relatedKey);
@@ -262,7 +253,8 @@ trait RPAC
      * @param User|Roles|null $user
      * @return Builder
      */
-    public function scopeAllowedTo(Builder $query, $action, ?User $user)
+    public
+    function scopeAllowedTo(Builder $query, $action, ?User $user)
     {
         // if one of user's non-model Roles is permitted to $action, user has access to all records
         // if not:
@@ -273,15 +265,10 @@ trait RPAC
         // Without model policy checks only non-model roles
         // If it returns true — user may observe all recordSet
 
-        $userNonModelRoles = $user ? array_merge(
-            ['any'], $user->roles->pluck('slug')->toArray()
-        ) : ['guest'];
+        $userNonModelRoles = $user ? $user->getRoles() : ['guest'];
         $authNonModelRoles = $this->getAuthorizedNonModelRoles($action);
 
-        $fullAccess =
-            in_array('*', $authNonModelRoles)
-            ||
-            array_intersect($userNonModelRoles, $authNonModelRoles);
+        $fullAccess = array_intersect($userNonModelRoles, $authNonModelRoles);
 
         if (!$fullAccess) {
 
@@ -307,7 +294,7 @@ trait RPAC
                 } else {
                     // User is anon or there are no authorized model roles
                     // Apply empty scope to prevent user access to unauthorized models
-                    $query->where($this->getKeyName(), 0);
+                    $query->whereKey(0);
                 }
             });
         }
@@ -319,17 +306,18 @@ trait RPAC
      * @param $action
      * @return array of roles
      */
-    protected function getAuthorizedNonModelRoles($action)
+    protected
+    function getAuthorizedNonModelRoles($action)
     {
         // Keep only non-model roles
         $roles = static::getPolicy()->getPermissions($action);
 
         if (in_array('*', $roles)) {
             // All non-model roles allowed
-            return RpacHelper::getNonModelRoles();
+            return Role::allSlugs();
         } else {
             // Some non-model roles allowed
-            return array_intersect($roles, RpacHelper::getNonModelRoles());
+            return array_intersect($roles, Role::allSlugs());
         }
     }
 
@@ -338,7 +326,8 @@ trait RPAC
      * @param string $action
      * @return array of roles
      */
-    protected function getAuthorizedModelRoles($action)
+    protected
+    function getAuthorizedModelRoles($action)
     {
         // Keep only model roles
         $relationships = static::getPolicy()->getPermissions($action);

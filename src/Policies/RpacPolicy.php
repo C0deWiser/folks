@@ -49,6 +49,76 @@ abstract class RpacPolicy
     {
     }
 
+    /**
+     * Get list of model actions
+     * @return array|string[]
+     * @example [view, update, delete, ...]
+     */
+    public function getModelActions()
+    {
+        try {
+            return $this->getActions('model');
+        } catch (\ReflectionException $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get list of non-model actions
+     * @return array|string[]
+     * @example [viewAny, create]
+     */
+    public function getNonModelActions()
+    {
+        try {
+            return $this->getActions('non-model');
+        } catch (\ReflectionException $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get list of available Policy actions
+     * @param string $option {model => returns actions for model; non-model => returns actions for non-model}
+     * @return array
+     * @throws \ReflectionException
+     */
+    private function getActions($option = null)
+    {
+        $reflection = new \ReflectionClass($this);
+        return array_values(
+            array_map(function (\ReflectionMethod $n) {
+                return $n->name;
+            }, array_filter(
+                    $reflection->getMethods(\ReflectionMethod::IS_PUBLIC),
+                    function (\ReflectionMethod $n) use ($option) {
+                        if ($n->isPublic()) {
+
+                            /* @var \ReflectionParameter $userParam */
+                            /* @var \ReflectionParameter $modelParam */
+                            $userParam = @$n->getParameters()[0];
+                            $modelParam = @$n->getParameters()[1];
+
+                            if ($option != 'non-model') {
+                                // Require both parameters
+                                if ($userParam && $modelParam && $userParam->name == 'user' && $modelParam->name == 'model') {
+                                    return $n;
+                                }
+                            }
+
+                            if ($option != 'model') {
+                                // Require only user parameter
+                                if ($userParam && !$modelParam && $userParam->name == 'user') {
+                                    return $n;
+                                }
+                            }
+                        }
+                        return null;
+                    })
+            )
+        );
+    }
+
     public function viewAny(?User $user)
     {
         return $this->authorize('viewAny', $user);
@@ -94,12 +164,10 @@ abstract class RpacPolicy
         if ($user) {
 
             if (!isset($this->cache["user-roles"])) {
-                $this->cache["user-roles"] = $user->roles->pluck('slug')->toArray();
+                $this->cache["user-roles"] = $user->getRoles();
             }
 
-            $roles = array_merge(
-                ['any'], $this->cache["user-roles"]
-            );
+            $roles = $this->cache["user-roles"];
         } else {
             $roles = ['guest'];
         }
@@ -112,39 +180,33 @@ abstract class RpacPolicy
      * @param Model|RPAC $model
      * @return array
      */
-    protected function getUserModelRoles(?User $user = null, ?Model $model = null)
+    protected function getUserModelRoles(User $user, Model $model)
     {
         /** @var Model $user */
         /** @var Builder $query */
 
         $roles = [];
 
-        if ($model && $user) {
-            foreach ($model->relationships as $relationship) {
-                // Check if given Model relates to User through $relationship
-                // Or maybe relation defined?
+        foreach ($model->getRelationshipListing() as $qualifiedRelationship) {
+            // Check if given Model relates to User through relation
 
-                $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
-                $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
+            $relationship = Str::afterLast($qualifiedRelationship, '\\'); // clear relationship from namespace
+            $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
+            $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
 
-                if (method_exists($model, $singleRelation)) {
-                    // $model->author() relation found
-                    // so we check $model->author property
-
-                    $suspect = $model->$singleRelation;
-                    if ($user->is($suspect)) {
-                        $roles[] = $this->getNamespace() . '\\' . $singleRelation;
-                    }
-                } elseif (method_exists($model, $pluralRelation)) {
-                    // $model->managers() relation found
-
-                    $suspect = $model->$pluralRelation()->whereKey($user->getKey())->get();
-                    if ($user->is($suspect)) {
-                        $roles[] = $this->getNamespace() . '\\' . $singleRelation;
-                    }
-                }
+            if (method_exists($model, $singleRelation)) {
+                // $model->author() relation found
+                $suspect = $model->$singleRelation;
+            } elseif (method_exists($model, $pluralRelation)) {
+                // $model->managers() relation found
+                $suspect = $model->$pluralRelation()->whereKey($user->getKey())->get();
+            } else {
+                $suspect = null;
             }
 
+            if ($user->is($suspect)) {
+                $roles[] = $qualifiedRelationship;
+            }
         }
 
         return $roles;
@@ -159,7 +221,6 @@ abstract class RpacPolicy
     {
         return $this->getNamespace() . ':' . $action;
     }
-
 
     /**
      * Checks User ability to perform Action against Model
@@ -187,7 +248,7 @@ abstract class RpacPolicy
     protected function getUserRoles(?User $user, Model $model = null)
     {
         $roles = array_merge(
-            $this->getUserModelRoles($user, $model),
+            ($user && $model) ? $this->getUserModelRoles($user, $model) : [],
             $this->getUserNonModelRoles($user)
         );
         return $roles;

@@ -24,6 +24,15 @@ class Role extends Model
     protected $fillable = ['name', 'slug', 'description'];
 
     /**
+     * Get list of all defined roles (slugs)
+     * @return array|string[]
+     */
+    public static function allSlugs()
+    {
+        return array_merge(['any', 'guest'], static::all()->pluck('slug')->toArray());
+    }
+
+    /**
      * Role belongs to many users.
      *
      * @return BelongsToMany

@@ -34,6 +34,15 @@ trait Roles
     }
 
     /**
+     * Get list of User roles (slugs)
+     * @return array|string[]
+     */
+    public function getRoles()
+    {
+        return array_merge(['any'], $this->roles->pluck('slug')->toArray());
+    }
+
+    /**
      * Check if User play every given role(s) — model and non-model
      *
      * @param string|array $role
@@ -52,6 +61,7 @@ trait Roles
         parent::boot();
 
         static::saving(function (User $user) {
+            /** @var Roles $user */
             if (!$user->api_token) $user->api_token = Str::random(60);
         });
     }
