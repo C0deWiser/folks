@@ -109,10 +109,10 @@ class RpacCommand extends Command
                         }
 
                         if ($user->roles->contains('id', $role->id)) {
-                            $info .= 'Роль [' . $role->slug . '] привязана ранее';
+                            $info .= 'Роль [' . $role->id . '] привязана ранее';
                         } else {
                             $user->roles()->attach($role->id);
-                            $info .= 'Роль [' . $role->slug . '] привязана к пользователю';
+                            $info .= 'Роль [' . $role->id . '] привязана к пользователю';
                         }
 
                     }
