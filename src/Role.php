@@ -31,7 +31,7 @@ class Role extends Model
      */
     public static function allSlugs()
     {
-        return array_merge(['any', 'guest'], static::all()->keys()->toArray());
+        return array_merge(['any', 'guest'], static::all()->modelKeys());
     }
 
     /**

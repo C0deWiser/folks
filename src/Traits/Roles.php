@@ -44,7 +44,7 @@ trait Roles
      */
     public function getRoles()
     {
-        return array_merge(['any'], $this->roles->keys()->toArray());
+        return array_merge(['any'], $this->roles->modelKeys());
     }
 
     /**
