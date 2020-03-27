@@ -28,6 +28,7 @@ use Illuminate\Support\Str;
  * For 'manager' relationship we assume managers() relation.
  * Etc.
  *
+ * @property array $relationships
  * @property-read array $authorizedActions
  */
 trait RPAC
@@ -102,7 +103,7 @@ trait RPAC
     {
         $relationships = [];
         $policy = static::getPolicy();
-        
+
         foreach ((array)$this->relationships as $relationship) {
             $relationships[] = $policy->getNamespace() . '\\' . Str::studly($relationship);
         }
@@ -118,8 +119,7 @@ trait RPAC
      * @return Builder
      * @throws RpacException
      */
-    public
-    function scopeRelated(Builder $query, $relationship, ?User $user)
+    public function scopeRelated(Builder $query, $relationship, ?User $user)
     {
         if ($user == null) {
             // no records
@@ -129,21 +129,28 @@ trait RPAC
         $relationship = Str::afterLast($relationship, '\\'); // clear relationship from namespace
         $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
         $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
+        $scopeName = 'scopeRelatedTo' . Str::studly($singleRelation); // scopeRelationshipByAuthor()
 
-        if (method_exists($this, $singleRelation)) {
+        $relation = null;
+        $scope = null;
+
+        if (method_exists($this, $scopeName)) {
+            // scopeRelatedTo...
+            $scope = $scopeName;
+        } elseif (method_exists($this, $singleRelation)) {
             // Single
             $relation = $this->$singleRelation();
         } elseif (method_exists($this, $pluralRelation)) {
             // Plural
             $relation = $this->$pluralRelation();
-        } else {
-            $relation = null;
         }
 
-        if ($relation) {
+        if ($scope) {
+            return $this->$scopeName($query, $user);
+        } elseif ($relation) {
             return $this->applyScopeForRelation($query, $relation, $user);
         } else {
-            throw new RpacException("Unknown relation `{$relationship}`");
+            throw new RpacException("Neither `{$singleRelation}` or `{$pluralRelation}` relations nor `{$scopeName}` scope defined in model.");
         }
     }
 
@@ -154,8 +161,7 @@ trait RPAC
      * @return Builder
      * @throws RpacException
      */
-    private
-    function applyScopeForRelation(Builder $query, Relation $relation, User $user)
+    private function applyScopeForRelation(Builder $query, Relation $relation, User $user)
     {
         if ($relation instanceof HasOneOrMany) {
             return $this->applyScopeForHasOneOrManyRelation($query, $relation, $user);
@@ -175,8 +181,7 @@ trait RPAC
      * @param User|Model $user
      * @return Builder
      */
-    private
-    function applyScopeForHasOneOrManyRelation(Builder $query, HasOneOrMany $relation, User $user)
+    private function applyScopeForHasOneOrManyRelation(Builder $query, HasOneOrMany $relation, User $user)
     {
         // Relation means that one User has one This
         // hasOne(User::class, foreignKey, localKey);
@@ -198,8 +203,7 @@ trait RPAC
      * @param User|Model $user
      * @return Builder
      */
-    private
-    function applyScopeForBelongsToRelation(Builder $query, BelongsTo $relation, User $user)
+    private function applyScopeForBelongsToRelation(Builder $query, BelongsTo $relation, User $user)
     {
         // Relation means that one User has many of This
         // BelongsTo(User::class, foreignKey, ownerKey);
@@ -222,8 +226,7 @@ trait RPAC
      * @param User|Model $user
      * @return Builder
      */
-    private
-    function applyScopeForBelongsToManyRelation(Builder $query, BelongsToMany $relation, User $user)
+    private function applyScopeForBelongsToManyRelation(Builder $query, BelongsToMany $relation, User $user)
     {
         // Relation means that many Users have many of This
         // BelongsToMany(User::class, table, foreignPivotKey, relatedPivotKey, parentKey, relatedKey);
@@ -253,8 +256,7 @@ trait RPAC
      * @param User|Roles|null $user
      * @return Builder
      */
-    public
-    function scopeAllowedTo(Builder $query, $action, ?User $user)
+    public function scopeAllowedTo(Builder $query, $action, ?User $user)
     {
         // if one of user's non-model Roles is permitted to $action, user has access to all records
         // if not:
@@ -306,8 +308,7 @@ trait RPAC
      * @param $action
      * @return array of roles
      */
-    protected
-    function getAuthorizedNonModelRoles($action)
+    protected function getAuthorizedNonModelRoles($action)
     {
         // Keep only non-model roles
         $roles = static::getPolicy()->getPermissions($action);
@@ -326,8 +327,7 @@ trait RPAC
      * @param string $action
      * @return array of roles
      */
-    protected
-    function getAuthorizedModelRoles($action)
+    protected function getAuthorizedModelRoles($action)
     {
         // Keep only model roles
         $relationships = static::getPolicy()->getPermissions($action);

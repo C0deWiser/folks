@@ -187,6 +187,26 @@ class Post extends Model
 
 Only `hasOne`, `hasMany`, `belongsTo` and `belongsToMany` relations supported.
 
+For other types of relationships you have to define scopes.
+
+```php
+class Post extends Model
+{
+    use RPAC;
+
+    public $relationships = ['master'];
+
+    public function scopeRelatedToMaster(Builder $query, ?User $user)
+    {
+        retrun $query->where('Some perverted clousures');
+    }
+}
+```
+
+Relation works faster, but scope is more precise and flexible.
+
+---
+
 Defining default rules, you may return not only roles, but relationships too. 
 They should be namespaced by Policy pseudo-name.
 
