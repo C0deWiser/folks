@@ -94,26 +94,24 @@ abstract class RpacPolicy
                     function (\ReflectionMethod $n) use ($option) {
                         if ($n->isPublic()) {
 
-                            /* @var \ReflectionParameter $userParam */
-                            /* @var \ReflectionParameter $modelParam */
-                            $userParam = @$n->getParameters()[0];
-                            $modelParam = @$n->getParameters()[1];
-
-                            // Other arguments must be optional
-                            $requiredParams = $n->getNumberOfRequiredParameters();
+                            /* @var \ReflectionParameter $firstArgument */
+                            /* @var \ReflectionParameter $secondArguments */
+                            $firstArgument = @$n->getParameters()[0];
+                            $secondArguments = @$n->getParameters()[1];
+                            $argumentCount = $n->getNumberOfParameters();
 
                             if ($option != 'non-model') {
                                 // Require both parameters
-                                if ($requiredParams == 2 && $userParam && $modelParam &&
-                                    $userParam->name == 'user' &&
-                                    $modelParam->name == 'model') {
+                                if ($argumentCount == 2 &&
+                                    $firstArgument->name == 'user' &&
+                                    $secondArguments->name == 'model') {
                                     return $n;
                                 }
                             }
 
                             if ($option != 'model') {
                                 // Require only user parameter
-                                if ($requiredParams == 1 && $userParam && !$modelParam && $userParam->name == 'user') {
+                                if ($argumentCount == 1 && $firstArgument->name == 'user') {
                                     return $n;
                                 }
                             }
