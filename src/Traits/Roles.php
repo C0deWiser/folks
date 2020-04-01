@@ -56,7 +56,7 @@ trait Roles
     public function playRole($roles)
     {
         $roles = is_array($roles) ? $roles : explode(' ', $roles);
-        return !!$this->roles()->whereIn('id', $roles)->count();
+        return !!$this->roles()->whereIn((new Role())->getTable().'.id', $roles)->count();
     }
 
     /**
@@ -67,7 +67,7 @@ trait Roles
     public function playRoles($roles)
     {
         $roles = is_array($roles) ? $roles : explode(' ', $roles);
-        return count($roles) === $this->roles()->whereIn('id', $roles)->count();
+        return count($roles) === $this->roles()->whereIn((new Role())->getTable().'.id', $roles)->count();
     }
 
     /**
