@@ -102,13 +102,26 @@ trait RPAC
     public function getRelationshipListing()
     {
         $relationships = [];
-        $policy = static::getPolicy();
 
         foreach ((array)$this->relationships as $relationship) {
-            $relationships[] = $policy->getNamespace() . '\\' . Str::studly($relationship);
+            $relationships[] = $this->getRelationshipQualifiedName($relationship);
         }
 
         return $relationships;
+    }
+
+    /**
+     * Get qualified name of relationship
+     * @param string $relationship
+     * @return string|null
+     */
+    public function getRelationshipQualifiedName($relationship)
+    {
+        if (in_array($relationship, $this->relationships)) {
+            return self::getPolicy()->getNamespace() . '\\' . Str::studly($relationship);
+        } else {
+            return null;
+        }
     }
 
     /**
