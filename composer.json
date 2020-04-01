@@ -1,6 +1,6 @@
 {
     "name": "codewiser/rpac",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "description": "Roles/Permissions Access Control (Rpac) Laravel package",
     "keywords": ["roles", "permissions", "rpac", "rbac", "acl", "auth", "laravel", "illuminate"],
     "license": "MIT",

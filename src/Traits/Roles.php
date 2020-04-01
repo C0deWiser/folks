@@ -48,17 +48,26 @@ trait Roles
     }
 
     /**
-     * Check if User play every given role(s) — model and non-model
+     * Check if User plays one of given roles
      *
-     * @param string|array $role
-     * @param Model $context
+     * @param string|array $roles
      * @return bool
      */
-    public function playRole($role, Model $context = null)
+    public function playRole($roles)
     {
-        // TODO make support $context
-        $role = is_array($role) ? $role : explode(' ', $role);
-        return count($role) === $this->roles()->whereIn('id', $role)->count();
+        $roles = is_array($roles) ? $roles : explode(' ', $roles);
+        return !!$this->roles()->whereIn('id', $roles)->count();
+    }
+
+    /**
+     * Check if User plays every given role
+     * @param string|array $roles
+     * @return bool
+     */
+    public function playRoles($roles)
+    {
+        $roles = is_array($roles) ? $roles : explode(' ', $roles);
+        return count($roles) === $this->roles()->whereIn('id', $roles)->count();
     }
 
     public static function boot()
