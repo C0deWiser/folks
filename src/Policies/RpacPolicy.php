@@ -99,16 +99,21 @@ abstract class RpacPolicy
                             $userParam = @$n->getParameters()[0];
                             $modelParam = @$n->getParameters()[1];
 
+                            // Other arguments must be optional
+                            $requiredParams = $n->getNumberOfRequiredParameters();
+
                             if ($option != 'non-model') {
                                 // Require both parameters
-                                if ($userParam && $modelParam && $userParam->name == 'user' && $modelParam->name == 'model') {
+                                if ($requiredParams == 2 && $userParam && $modelParam &&
+                                    $userParam->name == 'user' &&
+                                    $modelParam->name == 'model') {
                                     return $n;
                                 }
                             }
 
                             if ($option != 'model') {
                                 // Require only user parameter
-                                if ($userParam && !$modelParam && $userParam->name == 'user') {
+                                if ($requiredParams == 1 && $userParam && !$modelParam && $userParam->name == 'user') {
                                     return $n;
                                 }
                             }
