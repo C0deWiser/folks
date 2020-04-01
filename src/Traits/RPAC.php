@@ -99,12 +99,12 @@ trait RPAC
      * Get listing of defined relationships (qualified names)
      * @return array
      */
-    public function getRelationshipListing()
+    public static function getRelationshipListing()
     {
         $relationships = [];
 
-        foreach ((array)$this->relationships as $relationship) {
-            $relationships[] = $this->getRelationshipQualifiedName($relationship);
+        foreach ((array)(new static())->relationships as $relationship) {
+            $relationships[] = self::getRelationshipQualifiedName($relationship);
         }
 
         return $relationships;
@@ -115,9 +115,9 @@ trait RPAC
      * @param string $relationship
      * @return string|null
      */
-    public function getRelationshipQualifiedName($relationship)
+    public static function getRelationshipQualifiedName($relationship)
     {
-        if (in_array($relationship, $this->relationships)) {
+        if (in_array($relationship, (array)(new static())->relationships)) {
             return self::getPolicy()->getNamespace() . '\\' . Str::studly($relationship);
         } else {
             return null;
@@ -347,10 +347,10 @@ trait RPAC
 
         if (in_array('*', $relationships)) {
             // All model roles allowed
-            return $this->getRelationshipListing();
+            return self::getRelationshipListing();
         } else {
             // Some model roles allowed
-            return array_intersect($relationships, $this->getRelationshipListing());
+            return array_intersect($relationships, self::getRelationshipListing());
         }
     }
 

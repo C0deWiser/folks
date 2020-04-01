@@ -187,7 +187,7 @@ abstract class RpacPolicy
 
         $roles = [];
 
-        foreach ($model->getRelationshipListing() as $qualifiedRelationship) {
+        foreach ($model::getRelationshipListing() as $qualifiedRelationship) {
             // Check if given Model relates to User through relation
 
             $relationship = Str::afterLast($qualifiedRelationship, '\\'); // clear relationship from namespace
