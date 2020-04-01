@@ -9,6 +9,7 @@ use Codewiser\Rpac\Policies\RpacPolicy;
 use Codewiser\Rpac\Role;
 use \Illuminate\Contracts\Auth\Authenticatable as User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -125,6 +126,64 @@ trait RPAC
     }
 
     /**
+     * Check if User relates to the Model
+     * @param User|Roles $user
+     * @param string $as
+     * @return boolean
+     */
+    public function relatedTo(User $user, $as)
+    {
+        list (
+            $relationship,  // big_boss
+            $actor,         // bigBoss
+            $actors,        // bigBosses
+            $relatedTo,     // relatedToBigBoss
+            $scopeName      // scopeRelatedToBigBoss
+            ) = $this->getRelationMethods($as);
+
+        if (method_exists($this, $scopeName)) {
+            // scopeRelatedToAuthor contains current Model?
+            return static::$relatedTo($user)->whereKey($this->getKey())->exists();
+
+        } elseif (method_exists($this, $actor)) {
+            // Single
+            // $model->author() relation found
+            return $user->is($this->$actor);
+
+        } elseif (method_exists($this, $actors)) {
+            // Plural
+            // $model->managers() relation found
+            /** @var Relation $relation */
+            $relation = $this->$actors();
+            return $relation->whereKey($user->getKey())->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Get methods and properties for given relationship
+     * @param string $relationship Namespace\BigBoss or big_boss
+     * @return array [big_boss, bigBoss, bigBosses, relatedToBigBoss, scopeRelatedToBigBoss]
+     */
+    private function getRelationMethods($relationship)
+    {
+        $relationship = Str::afterLast($relationship, '\\'); // clear namespace
+        $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
+        $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
+        $relatedTo = 'relatedTo' . Str::studly($singleRelation); // relatedToAuthor()
+        $scopeName = 'scope' . Str::studly($relatedTo); // scopeRelatedToAuthor()
+
+        return [
+            $relationship,
+            $singleRelation,
+            $pluralRelation,
+            $scopeName,
+            $relatedTo
+        ];
+    }
+
+    /**
      * Scope will limit Model to only records related to given User
      * @param Builder $query
      * @param $relationship
@@ -139,10 +198,13 @@ trait RPAC
             return $query->whereKey(0);
         }
 
-        $relationship = Str::afterLast($relationship, '\\'); // clear relationship from namespace
-        $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
-        $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
-        $scopeName = 'scopeRelatedTo' . Str::studly($singleRelation); // scopeRelationshipByAuthor()
+        list (
+            $relationship,      // big_boss
+            $singleRelation,    // bigBoss
+            $pluralRelation,    // bigBosses
+            $queryName,         // relatedToBigBoss
+            $scopeName          // scopeRelatedToBigBoss
+            ) = $this->getRelationMethods($relationship);
 
         $relation = null;
         $scope = null;

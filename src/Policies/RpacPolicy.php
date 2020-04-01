@@ -185,30 +185,13 @@ abstract class RpacPolicy
      */
     protected function getUserModelRoles(User $user, Model $model)
     {
-        /** @var Model $user */
-        /** @var Builder $query */
-
         $roles = [];
 
-        foreach ($model::getRelationshipListing() as $qualifiedRelationship) {
+        foreach ($model::getRelationshipListing() as $relationship) {
             // Check if given Model relates to User through relation
 
-            $relationship = Str::afterLast($qualifiedRelationship, '\\'); // clear relationship from namespace
-            $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
-            $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
-
-            if (method_exists($model, $singleRelation)) {
-                // $model->author() relation found
-                $suspect = $model->$singleRelation;
-            } elseif (method_exists($model, $pluralRelation)) {
-                // $model->managers() relation found
-                $suspect = $model->$pluralRelation()->whereKey($user->getKey())->get();
-            } else {
-                $suspect = null;
-            }
-
-            if ($user->is($suspect)) {
-                $roles[] = $qualifiedRelationship;
+            if ($model->relatedTo($user, $relationship)) {
+                $roles[] = $relationship;
             }
         }
 

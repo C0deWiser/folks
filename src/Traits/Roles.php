@@ -60,7 +60,7 @@ trait Roles
     }
 
     /**
-     * Check if User plays every given role
+     * Check if User plays every given role?
      * @param string|array $roles
      * @return bool
      */
@@ -68,6 +68,17 @@ trait Roles
     {
         $roles = is_array($roles) ? $roles : explode(' ', $roles);
         return count($roles) === $this->roles()->whereIn('id', $roles)->count();
+    }
+
+    /**
+     * Check if User plays given role in model?
+     * @param Model|RPAC $model
+     * @param string $as
+     * @return boolean
+     */
+    public function relatesTo(Model $model, $as)
+    {
+        return $model->relatedTo($this, $as);
     }
 
     public static function boot()
