@@ -1,4 +1,4 @@
-# Roles/Permissions Access Control [RPAC] Laravel Package
+# Roles/Permissions Access Control [R.P.A.C.] Laravel Package
 
 ## Installation
 
@@ -87,7 +87,7 @@ You may define default rules.
 ```php
 class PostPolicy extends RpacPolicy
 {
-    public function getDefaults($action)
+    public function permissions($action)
     {
         if ($action == 'view') {
             // Any user may view
@@ -103,8 +103,6 @@ class PostPolicy extends RpacPolicy
 When you define default rules, you should return roles, allowed to perform given action.
 You may return array of roles, one role, `*` as any role or nothing.
 Role `guest` means anonymous user. Role `any` means any authorized user. 
-
-Other rules you may tune up using administrative interface. Those rules can not override defaults.
 
 Out-of-the-box Policy supports Laravel default actions: `viewAny` and `create` as non-model 
 and `view`, `update`, `delete`, `restore` and `forceDelete` as model actions.
@@ -196,16 +194,16 @@ class Post extends Model
 
     public $relationships = ['master'];
 
-    public function scopeRelatedToMaster(Builder $query, ?User $user)
+    public function scopeOnlyRelatedToMaster(Builder $query, ?User $user)
     {
         retrun $query->where('Some perverted clousures');
     }
 }
 ```
 
-Relation works faster, but scope is more precise and flexible.
+Relation works faster, but scope is more precise and flexible. You may clause additional statements.
 
----
+### Relationship names
 
 Defining default rules, you may return not only roles, but relationships too. 
 They should be namespaced by Policy pseudo-name.
@@ -213,7 +211,7 @@ They should be namespaced by Policy pseudo-name.
 ```php
 class PostPolicy extends RpacPolicy
 {    
-    public function getDefaults($action)
+    public function defaults($action)
     {
         if ($action == 'view') {
             // Any user may view
@@ -231,6 +229,24 @@ class PostPolicy extends RpacPolicy
 }
 ```
 
+You may get full relationship name user helper method:
+
+```php
+Post::getRelationshipQualifiedName('author');
+// Post\Author
+```
+
+### Examine relationship
+
+```php
+if ($user->relatesTo($post, 'author')) {}
+// or
+if ($post->relatedTo($user, 'author')) {}
+
+```
+
+## Scopes
+
 With relationship you may scope your Model to get only those records, that User may interact.
 
 For example: any user may create post, but user can edit only posts he wrote. In other words, only author can edit posts.
@@ -238,7 +254,14 @@ So, the scope will contain only posts with `post.author_id=user.id`
 
 ```php
 // Only records User may edit
-$posts = Post::query()->allowedTo('update', Auth::user())->get();
+$posts = Post::query()->onlyAllowedTo('update', Auth::user())->get();
+```
+
+Also there is a scope to get records related to the user.
+
+```php
+// Only records where User is author
+$posts = Post::query()->onlyRelated('author', Auth::user())->get();
 ```
 
 Here is an example of the PostController.
@@ -250,9 +273,9 @@ class PostController
     {
         $this->authorize('viewAny', Post::class);
 
-        // The current user can see listing of the blog posts
-
-        $posts = Post::query()->allowedTo('view', Auth::user());
+        $posts = Post::query()
+        	->onlyAllowedTo('view', Auth::user())
+        	->onlyRelated('author', Auth::user());
 
         // return posts to frontend
     }
@@ -266,21 +289,26 @@ class PostController
 }
 ```
 
+
 ## Getting abilities
 
 To build proper User Interface you need to know whether User allowed to create or edit Model.
 You may collect full list of authorized actions through Model.
 
 ```php
-// Model actions
 $post = Post::find($id);
+
+// Model actions
 $abilities = $post->getAuthorizedActions(Auth::user());
+
 // or use property, that returns actions for authorized user
 $abilities = $post->authorizedActions;
+
 // [view, update]
 
 // Non-model actions
 $abilities = Post::authorizedActions(Auth::user());
+
 // [viewAny]
 
 ```

@@ -137,8 +137,8 @@ trait RPAC
             $relationship,  // big_boss
             $actor,         // bigBoss
             $actors,        // bigBosses
-            $relatedTo,     // relatedToBigBoss
-            $scopeName      // scopeRelatedToBigBoss
+            $relatedTo,     // onlyRelatedToBigBoss
+            $scopeName      // scopeOnlyRelatedToBigBoss
             ) = $this->getRelationMethods($as);
 
         if (method_exists($this, $scopeName)) {
@@ -164,15 +164,15 @@ trait RPAC
     /**
      * Get methods and properties for given relationship
      * @param string $relationship Namespace\BigBoss or big_boss
-     * @return array [big_boss, bigBoss, bigBosses, relatedToBigBoss, scopeRelatedToBigBoss]
+     * @return array [big_boss, bigBoss, bigBosses, onlyRelatedToBigBoss, scopeOnlyRelatedToBigBoss]
      */
     private function getRelationMethods($relationship)
     {
         $relationship = Str::afterLast($relationship, '\\'); // clear namespace
         $singleRelation = Str::camel($relationship); // author() or chiefOfficer()
         $pluralRelation = Str::pluralStudly($singleRelation); // authors() or chiefOfficers()
-        $relatedTo = 'relatedTo' . Str::studly($singleRelation); // relatedToAuthor()
-        $scopeName = 'scope' . Str::studly($relatedTo); // scopeRelatedToAuthor()
+        $relatedTo = 'onlyRelatedTo' . Str::studly($singleRelation); // onlyRelatedToAuthor()
+        $scopeName = 'scope' . Str::studly($relatedTo); // scopeOnlyRelatedToAuthor()
 
         return [
             $relationship,
@@ -191,7 +191,7 @@ trait RPAC
      * @return Builder
      * @throws RpacException
      */
-    public function scopeRelated(Builder $query, $relationship, ?User $user)
+    public function scopeOnlyRelated(Builder $query, $relationship, ?User $user)
     {
         if ($user == null) {
             // no records
@@ -202,8 +202,8 @@ trait RPAC
             $relationship,      // big_boss
             $singleRelation,    // bigBoss
             $pluralRelation,    // bigBosses
-            $queryName,         // relatedToBigBoss
-            $scopeName          // scopeRelatedToBigBoss
+            $queryName,         // onlyRelatedToBigBoss
+            $scopeName          // scopeOnlyRelatedToBigBoss
             ) = $this->getRelationMethods($relationship);
 
         $relation = null;
@@ -331,7 +331,7 @@ trait RPAC
      * @param User|Roles|null $user
      * @return Builder
      */
-    public function scopeAllowedTo(Builder $query, $action, ?User $user)
+    public function scopeOnlyAllowedTo(Builder $query, $action, ?User $user)
     {
         // if one of user's non-model Roles is permitted to $action, user has access to all records
         // if not:

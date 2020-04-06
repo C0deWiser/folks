@@ -45,7 +45,7 @@ abstract class RpacPolicy
      * @param string $action
      * @return array|string|null|void return namespaced(!) roles, allowed to $action
      */
-    public function getDefaults($action)
+    public function permissions($action)
     {
     }
 
@@ -256,7 +256,7 @@ abstract class RpacPolicy
             }
         );
         return array_merge(
-            (array)$this->getDefaults($action),
+            (array)$this->permissions($action),
             (array)$permissions->pluck('role')->toArray()
         );
     }
