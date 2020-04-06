@@ -45,9 +45,7 @@ abstract class RpacPolicy
      * @param string $action
      * @return array|string|null|void return namespaced(!) roles, allowed to $action
      */
-    public function permissions($action)
-    {
-    }
+    abstract public function permissions($action);
 
     /**
      * Get list of model actions
