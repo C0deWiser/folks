@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use \Illuminate\Contracts\Auth\Authenticatable as User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Codewiser\Rpac\Permission;
 use Codewiser\Rpac\Traits\Roles;
@@ -142,17 +143,42 @@ abstract class RpacPolicy
 
     public function delete(?User $user, Model $model)
     {
+        /** @var Model|SoftDeletes $model */
+        if ($this->usesSoftDeletes($model) && $model->trashed()) {
+            // You can not delete deleted record
+            return false;
+        }
         return $this->authorize('delete', $user, $model);
     }
 
     public function restore(?User $user, Model $model)
     {
+        /** @var Model|SoftDeletes $model */
+        if ($this->usesSoftDeletes($model) && !$model->trashed()) {
+            // You can not restore the record
+            return false;
+        }
         return $this->authorize('restore', $user, $model);
     }
 
     public function forceDelete(?User $user, Model $model)
     {
+        /** @var Model|SoftDeletes $model */
+        if (!$this->usesSoftDeletes($model)) {
+            // You can not forceDelete record, that not use SoftDeletes trait
+            return false;
+        }
         return $this->authorize('forceDelete', $user, $model);
+    }
+
+    /**
+     * If Model uses SoftDeletes trait
+     * @param Model $model
+     * @return bool
+     */
+    private function usesSoftDeletes(Model $model)
+    {
+        return method_exists($model, 'restore');
     }
 
     /**
