@@ -194,7 +194,7 @@ class Post extends Model
 
     public $relationships = ['master'];
 
-    public function scopeOnlyRelatedToMaster(Builder $query, ?User $user)
+    public function scopeOnlyRelatedToMaster(Builder $query, User $user)
     {
         retrun $query->where('Some perverted clousures');
     }
