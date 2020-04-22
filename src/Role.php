@@ -41,11 +41,6 @@ class Role extends Model
      */
     public function users()
     {
-        return $this->belongsToMany(
-            config('rpac.models.user'),
-            'role_user',
-            'role',
-            'user_id'
-        )->withTimestamps();
+        return $this->belongsToMany(config('rpac.models.user'))->withTimestamps();
     }
 }

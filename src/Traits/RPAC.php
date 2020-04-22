@@ -127,7 +127,7 @@ trait RPAC
 
     /**
      * Check if User relates to the Model
-     * @param User|Roles $user
+     * @param User|HasRoles $user
      * @param string $as
      * @return boolean
      */
@@ -328,7 +328,7 @@ trait RPAC
      * Apply global scope to the Model, so user can get only records he allowed to $action
      * @param Builder $query
      * @param string $action
-     * @param User|Roles|null $user
+     * @param User|HasRoles|null $user
      * @return Builder
      */
     public function scopeOnlyAllowedTo(Builder $query, $action, ?User $user)

@@ -3,6 +3,7 @@
 namespace Codewiser\Rpac\Middleware;
 
 use Closure;
+use Codewiser\Rpac\Traits\HasRoles;
 use Illuminate\Contracts\Auth\Guard;
 
 class VerifyRole
@@ -33,7 +34,10 @@ class VerifyRole
      */
     public function handle($request, Closure $next, $roles = '')
     {
-        if ($this->auth->check() && $this->auth->user()->playRole(!empty($roles) ? explode( "|", $roles) : [])) {
+        /** @var HasRoles $user */
+        $user = $this->auth->user();
+
+        if ($this->auth->check() && $user->playRole(!empty($roles) ? explode( "|", $roles) : [])) {
             //$this->auth->user()->load('roles');
             return $next($request);
         }

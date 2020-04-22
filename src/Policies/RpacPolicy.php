@@ -11,7 +11,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Codewiser\Rpac\Permission;
-use Codewiser\Rpac\Traits\Roles;
+use Codewiser\Rpac\Traits\HasRoles;
 
 abstract class RpacPolicy
 {
@@ -183,7 +183,7 @@ abstract class RpacPolicy
 
     /**
      * Get user roles
-     * @param User|Roles|null $user
+     * @param User|HasRoles|null $user
      * @return array
      */
     protected function getUserNonModelRoles(?User $user)

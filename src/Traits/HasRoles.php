@@ -21,7 +21,7 @@ use Codewiser\Rpac\Role;
  * @property string $api_token
  * @property Collection|Role[] $roles
  */
-trait Roles
+trait HasRoles
 {
     /**
      * User belongs to many roles.
@@ -30,12 +30,7 @@ trait Roles
      */
     public function roles()
     {
-        return $this->belongsToMany(
-            Role::class,
-            'role_user',
-            'user_id',
-            'role'
-        )->withTimestamps();
+        return $this->belongsToMany(Role::class)->withTimestamps();
     }
 
     /**
@@ -48,7 +43,7 @@ trait Roles
     }
 
     /**
-     * Check if User plays one of given roles
+     * Check if User plays one of given roles (array or space separated string)
      *
      * @param string|array $roles
      * @return bool
@@ -60,7 +55,7 @@ trait Roles
     }
 
     /**
-     * Check if User plays every given role?
+     * Check if User plays every of given roles (array or space separated string)
      * @param string|array $roles
      * @return bool
      */
@@ -81,13 +76,12 @@ trait Roles
         return $model->relatedTo($this, $as);
     }
 
-    public static function boot()
+    public static function bootHasRoles()
     {
-        parent::boot();
-
-        static::saving(function (User $user) {
-            /** @var Roles $user */
-            if (!$user->api_token) $user->api_token = Str::random(60);
+        static::saving(function (HasRoles $user) {
+            if (!$user->api_token) {
+                $user->api_token = Str::random(80);
+            }
         });
     }
 
