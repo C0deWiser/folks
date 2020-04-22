@@ -78,7 +78,8 @@ trait HasRoles
 
     public static function bootHasRoles()
     {
-        static::saving(function (HasRoles $user) {
+        static::saving(function (Model $user) {
+            /* @var HasRoles $user */
             if (!$user->api_token) {
                 $user->api_token = Str::random(80);
             }
