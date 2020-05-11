@@ -31,6 +31,9 @@ use Illuminate\Support\Str;
  *
  * @property array $relationships
  * @property-read array $authorizedActions
+ *
+ * @method static static|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder onlyAllowedTo($action, ?User $user) Scope Model with records authorized to given User action
+ * @method static static|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder onlyRelated($relationship, ?User $user) Scope Model with records related to given User
  */
 trait RPAC
 {
@@ -325,7 +328,7 @@ trait RPAC
     }
 
     /**
-     * Apply global scope to the Model, so user can get only records he allowed to $action
+     * Apply scope to the Model, so user can get only records he allowed to $action
      * @param Builder $query
      * @param string $action
      * @param User|HasRoles|null $user
