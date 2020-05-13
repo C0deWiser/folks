@@ -2,6 +2,7 @@
 
 namespace Codewiser\Rpac;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User;
@@ -13,6 +14,7 @@ use Illuminate\Foundation\Auth\User;
  * @property string $id
  * @property string $name
  * @property string $description
+ * @property Collection|Model[] $users
  */
 class Role extends Model
 {
