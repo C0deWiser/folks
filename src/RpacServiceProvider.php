@@ -24,6 +24,8 @@ class RpacServiceProvider extends ServiceProvider
 
         $this->bootMiddleware();
 
+        $this->registerBladeExtensions();
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Console\Commands\RpacCommand::class,
@@ -62,16 +64,5 @@ class RpacServiceProvider extends ServiceProvider
         $blade->directive('endrole', function () {
             return "<?php endif; ?>";
         });
-
-        /* TODO
-        $blade->directive('permission', function ($expression) {
-            return "<?php if (Auth::check() && Auth::user()->can{$expression}): ?>";
-        });
-
-        $blade->directive('endpermission', function () {
-            return "<?php endif; ?>";
-        });
-        */
-
     }
 }
