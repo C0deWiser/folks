@@ -22,19 +22,6 @@ class RpacServiceProvider extends ServiceProvider
             __DIR__ . '/../database/migrations/' => base_path('/database/migrations')
         ], 'rpac-migrations');
 
-
-        $this->publishes([
-            __DIR__.'/../public/vendor/rpac' => public_path('vendor/rpac'),
-        ], 'rpac-assets');
-
-        $this->registerBladeExtensions();
-
-        $this->loadRoutesFrom(__DIR__.'/../routes/rpac.php');
-
-        $this->loadViewsFrom(
-            __DIR__.'/../resources/views', 'rpac'
-        );
-
         $this->bootMiddleware();
 
         if ($this->app->runningInConsole()) {
