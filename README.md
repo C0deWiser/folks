@@ -52,15 +52,16 @@ And set protected property $with = ['roles'] (for autoloading roles with User's 
     
 For now User has `roles()` relation.
     
-### Create Su/Admin User
+### Create Admin User
 
-Run command, example `rpac su:1` or `rpac admin:email@example.com` or `role:user@example.com:pa$$w0r5` .
+Run command, example `rpac admin:1` or `rpac admin:email@example.com` or `admin:user@example.com:pa$$w0r5` .
 
-    php artisan rpac su:slava@trunov.me
+    php artisan rpac admin:email@example.com
 
 > (:
 >
-> And go to `your-domain.com/admin-rpac`
+> Install the [RPAC-UI](https://github.com/C0deWiser/rpacui)
+> ...and go to `your-domain.com/rpac-ui`
 >
 > :)
 
