@@ -33,7 +33,9 @@ use Illuminate\Support\Str;
  * @property-read array $authorizedActions
  *
  * @method static static|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder onlyAllowedTo($action, ?User $user) Scope Model with records authorized to given User action
+ * @method static static|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder authorized($action, ?User $user) Scope Model with records authorized to given User action
  * @method static static|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder onlyRelated($relationship, ?User $user) Scope Model with records related to given User
+ *
  */
 trait RPAC
 {
@@ -181,8 +183,8 @@ trait RPAC
             $relationship,
             $singleRelation,
             $pluralRelation,
-            $scopeName,
-            $relatedTo
+            $relatedTo,
+            $scopeName
         ];
     }
 
@@ -328,6 +330,19 @@ trait RPAC
     }
 
     /**
+     * Apply scope to the Model, so user can get only records he authorized to
+     *
+     * @param Builder $query
+     * @param $action
+     * @param User|null $user
+     * @return Builder
+     */
+    public function scopeAuthorized(Builder $query, $action, ?User $user)
+    {
+        return $this->scopeOnlyAllowedTo($query, $action, $user);
+    }
+
+    /**
      * Apply scope to the Model, so user can get only records he allowed to $action
      * @param Builder $query
      * @param string $action
@@ -368,7 +383,7 @@ trait RPAC
                     // etc
                     foreach ($authModelRoles as $relationship) {
                         $query->orWhere(function (Builder $query) use ($relationship, $user) {
-                            $query->related($relationship, $user);
+                            $query->onlyRelated($relationship, $user);
                         });
                     }
                 } else {
