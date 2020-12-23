@@ -76,14 +76,4 @@ trait HasRoles
         return $model->relatedTo($this, $as);
     }
 
-    public static function bootHasRoles()
-    {
-        static::saving(function (Model $user) {
-            /* @var HasRoles $user */
-            if (!$user->api_token) {
-                $user->api_token = Str::random(80);
-            }
-        });
-    }
-
 }
