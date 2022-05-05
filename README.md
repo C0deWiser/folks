@@ -19,7 +19,7 @@ Add the package to your application service providers in `config/app.php` file.
     /**
      * Third Party Service Providers...
      */
-    Codewiser\Rpac\RpacServiceProvider::class,
+    Codewiser\Folks\FolksServiceProvider::class,
 
 ],
 ```
@@ -75,7 +75,7 @@ Create policy class extends `RpacPolicy` for your model.
 ```php
 namespace App\Policies;
 
-use Codewiser\Rpac\Policies\RpacPolicy;
+use Codewiser\Folks\Policies\RpacPolicy;
 
 class PostPolicy extends RpacPolicy
 {

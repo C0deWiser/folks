@@ -1,8 +1,8 @@
 <?php
 
-namespace Codewiser\Rpac\Example;
+namespace Codewiser\Folks\Example;
 
-use Codewiser\Rpac\Traits\RPAC;
+use Codewiser\Folks\Traits\RPAC;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User;

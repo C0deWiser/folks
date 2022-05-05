@@ -1,8 +1,8 @@
 <?php
 
-namespace Codewiser\Rpac\Example;
+namespace Codewiser\Folks\Example;
 
-class PostPolicy extends \Codewiser\Rpac\Policies\RpacPolicy
+class PostPolicy extends \Codewiser\Folks\Policies\RpacPolicy
 {
 
 }
