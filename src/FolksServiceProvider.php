@@ -60,12 +60,17 @@ class FolksServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../stubs/FolksServiceProvider.stub' => app_path('Providers/FolksServiceProvider.php'),
+                __DIR__.'/../stubs/FolksServiceProvider.php' => app_path('Providers/FolksServiceProvider.php'),
             ], 'folks-provider');
 
             $this->publishes([
                 __DIR__.'/../config/folks.php' => config_path('folks.php'),
             ], 'folks-config');
+
+            $this->publishes([
+                __DIR__.'/../stubs/CreateNewUser.php' => app_path('Actions/Folks/CreateNewUser.php'),
+                __DIR__.'/../stubs/UpdateUserProfileInformation.php' => app_path('Actions/Folks/UpdateUserProfileInformation.php'),
+            ], 'folks-support');
         }
     }
 
@@ -98,6 +103,7 @@ class FolksServiceProvider extends ServiceProvider
             'domain' => config('folks.domain', null),
             'prefix' => config('folks.path'),
             'middleware' => config('folks.middleware', 'web'),
+            'as' => 'folks.',
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         });

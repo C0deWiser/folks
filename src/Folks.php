@@ -4,6 +4,14 @@ namespace Codewiser\Folks;
 
 
 use Closure;
+use Codewiser\Folks\Contracts\CreatesNewUsers;
+use Codewiser\Folks\Contracts\UpdatesUserProfileInformation;
+use Codewiser\Folks\Contracts\UserContract;
+use Codewiser\Folks\Controls\Label;
+use Codewiser\Folks\Controls\UserControl;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
 
@@ -25,6 +33,16 @@ class Folks
     public static Closure $usersUsing;
 
     /**
+     * Class name for Users Model.
+     */
+    public static string $usersClass;
+
+    /**
+     * @var Collection|UserControl[]|null
+     */
+    public static ?Collection $usersSchema = null;
+
+    /**
      * Set the callback that should be used to authenticate Folks users.
      */
     public static function auth(Closure $callback): Folks
@@ -44,6 +62,34 @@ class Folks
         return (static::$authUsing ?: function () {
             return app()->environment('local');
         })($request);
+    }
+
+    /**
+     * Set the callback that should be used to get roles' collection.
+     */
+    public static function setRoles(Closure $callback): Folks
+    {
+        static::$rolesUsing = $callback;
+
+        return new static;
+    }
+
+    /**
+     * Set the callback that should be used to get users' builder.
+     */
+    public static function usersBuilder(Closure $callback): Folks
+    {
+        static::$usersUsing = $callback;
+
+        return new static;
+    }
+
+    /**
+     *
+     */
+    public static function getUsersBuilder(?Authenticatable $user): Builder
+    {
+        return call_user_func(static::$usersUsing, $user);
     }
 
     /**
@@ -70,5 +116,43 @@ class Folks
         return [
             'path' => config('folks.path'),
         ];
+    }
+
+    /**
+     * Register a class / callback that should be used to create new users.
+     *
+     * @param  string  $callback
+     * @return void
+     */
+    public static function createUsersUsing(string $callback)
+    {
+        app()->singleton(CreatesNewUsers::class, $callback);
+    }
+
+    /**
+     * Register a class / callback that should be used to update user profile information.
+     *
+     * @param  string  $callback
+     * @return void
+     */
+    public static function updateUserProfileInformationUsing(string $callback)
+    {
+        app()->singleton(UpdatesUserProfileInformation::class, $callback);
+    }
+
+    /**
+     * @param string $classname
+     */
+    public static function usersClassname(string $classname): void
+    {
+        self::$usersClass = $classname;
+    }
+
+    /**
+     * @param Collection $usersSchema
+     */
+    public static function usersSchema(Collection $usersSchema): void
+    {
+        self::$usersSchema = $usersSchema;
     }
 }

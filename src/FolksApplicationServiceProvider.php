@@ -2,10 +2,13 @@
 
 namespace Codewiser\Folks;
 
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
-class FolksApplicationServiceProvider extends ServiceProvider
+abstract class FolksApplicationServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.
@@ -15,6 +18,7 @@ class FolksApplicationServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->authorization();
+        $this->registerRoles();
     }
 
     /**
@@ -22,7 +26,7 @@ class FolksApplicationServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function authorization()
+    final protected function authorization()
     {
         $this->gate();
 
@@ -39,14 +43,25 @@ class FolksApplicationServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function gate()
+    abstract protected function gate();
+
+    final protected function registerRoles()
     {
-        Gate::define('viewFolks', function ($user) {
-            return in_array($user->email, [
-                //
-            ]);
+        Folks::setRoles(function () {
+            return $this->roles();
         });
     }
+
+    /**
+     * Return roles' collection.
+     *
+     * Every role should conform to \Codewiser\Folks\Contracts\RoleContract
+     *
+     * Role may be as Model, as Enum.
+     *
+     * @return Collection
+     */
+    abstract protected function roles();
 
     /**
      * Register any application services.

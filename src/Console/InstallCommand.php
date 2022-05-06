@@ -34,6 +34,9 @@ class InstallCommand extends Command
         $this->comment('Publishing Folks Assets...');
         $this->callSilent('vendor:publish', ['--tag' => 'folks-assets']);
 
+        $this->comment('Publishing Folks Actions...');
+        $this->callSilent('vendor:publish', ['--tag' => 'folks-support']);
+
         $this->comment('Publishing Folks Configuration...');
         $this->callSilent('vendor:publish', ['--tag' => 'folks-config']);
 

@@ -1,35 +1,41 @@
 {
-    "name": "codewiser/folks",
-    "version": "1.0.0",
-    "description": "User/Role management Laravel package",
-    "keywords": ["users", "roles", "dashboard", "laravel"],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Slava Codewiser",
-            "email": "s@trnw.ru"
-        },
-        {
-            "name": "Michael Pogrebnikov",
-            "email": "mpogreb@gmail.com"
-        }
-    ],
-    "require": {
-        "php": "^7.4|^8.0",
-        "laravel/framework": "^8.0|^9.0"
+  "name": "codewiser/folks",
+  "version": "1.0.0",
+  "description": "User/Role management Laravel package",
+  "keywords": [
+    "users",
+    "roles",
+    "dashboard",
+    "laravel"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Slava Codewiser",
+      "email": "s@trnw.ru"
     },
-    "autoload": {
-        "psr-4": {
-            "Codewiser\\Folks\\": "src"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Codewiser\\Folks\\FolksServiceProvider"
-            ]
-        }
+    {
+      "name": "Michael Pogrebnikov",
+      "email": "mpogreb@gmail.com"
     }
+  ],
+  "require": {
+    "php": "^7.4|^8.0",
+    "laravel/framework": "^8.0|^9.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Codewiser\\Folks\\": "src"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Codewiser\\Folks\\FolksServiceProvider"
+      ]
+    }
+  }
 }

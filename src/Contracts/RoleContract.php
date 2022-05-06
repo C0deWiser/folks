@@ -3,7 +3,7 @@
 namespace Codewiser\Folks\Contracts;
 
 /**
- * Role model or role enum should conform this contract.
+ * Role Model/Enum conforms this contract.
  *
  * @property-read string $name
  */
