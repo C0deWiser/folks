@@ -14,7 +14,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('rpac::layout', [
+        return view('folks::layout', [
             'assetsAreCurrent' => Folks::assetsAreCurrent(),
             'cssFile' => 'app.css',
             'folksScriptVariables' => Folks::scriptVariables(),

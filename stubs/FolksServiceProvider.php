@@ -4,7 +4,10 @@ namespace App\Providers;
 
 use App\Actions\Folks\CreateNewUser;
 use App\Actions\Folks\UpdateUserProfileInformation;
+use Codewiser\Folks\Controls\Input;
 use Codewiser\Folks\Controls\Label;
+use Codewiser\Folks\Controls\Option;
+use Codewiser\Folks\Controls\Options;
 use Codewiser\Folks\Folks;
 use Codewiser\Folks\FolksApplicationServiceProvider;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -18,20 +21,18 @@ class FolksServiceProvider extends FolksApplicationServiceProvider
     {
         parent::boot();
 
-        Folks::usersClassname(\App\Models\User::class);
-
-        Folks::usersBuilder(function (?Authenticatable $user) {
-            // scope query with users, that Authenticatable allowed to view!
+        Folks::usersBuilder(function ($user = null) {
+            // scope query with only users, that authenticated $user allowed to view!
             return \App\Models\User::query()->withTrashed();
         });
 
         Folks::usersSchema([
-            'id' => Label::make('Id'),
-            'name' => 'string',
-            'email' => 'email',
-            'email_verified_at' => 'boolean',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime'
+            Label::make('id'),
+            Input::make('name')->type('text')->required(),
+            Input::make('email')->type('email')->required(),
+            Label::make('email_verified_at')->cast('boolean')->label('Email Verified'),
+            Label::make('created_at'),
+            Label::make('updated_at'),
         ]);
 
         Folks::createUsersUsing(CreateNewUser::class);

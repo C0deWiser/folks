@@ -33,11 +33,6 @@ class Folks
     public static Closure $usersUsing;
 
     /**
-     * Class name for Users Model.
-     */
-    public static string $usersClass;
-
-    /**
      * @var Collection|UserControl[]|null
      */
     public static ?Collection $usersSchema = null;
@@ -141,18 +136,10 @@ class Folks
     }
 
     /**
-     * @param string $classname
+     * @param array $usersSchema
      */
-    public static function usersClassname(string $classname): void
+    public static function usersSchema(array $usersSchema): void
     {
-        self::$usersClass = $classname;
-    }
-
-    /**
-     * @param Collection $usersSchema
-     */
-    public static function usersSchema(Collection $usersSchema): void
-    {
-        self::$usersSchema = $usersSchema;
+        self::$usersSchema = collect($usersSchema);
     }
 }

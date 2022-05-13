@@ -15,14 +15,16 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Folks::$usersClass);
+        $users = Folks::getUsersBuilder($request->user());
 
-        $users = Folks::getUsersBuilder($request->user())->paginate();
+        $classname = get_class($users->getModel());
 
-        return UserResource::collection($users)
+        $this->authorize('viewAny', $classname);
+
+        return UserResource::collection($users->paginate())
             ->additional([
                 'abilities' => [
-                    'create' => Gate::allows('create', Folks::$usersClass)
+                    'create' => Gate::allows('create', $classname)
                 ],
                 'schema' => Folks::$usersSchema
             ]);
@@ -58,7 +60,11 @@ class UserController extends Controller
 
     public function store(Request $request, CreatesNewUsers $creator)
     {
-        $this->authorize('create', Folks::$usersClass);
+        $users = Folks::getUsersBuilder($request->user());
+
+        $classname = get_class($users->getModel());
+
+        $this->authorize('create', $classname);
 
         $user = $creator->create($request->all());
 
