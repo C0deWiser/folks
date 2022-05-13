@@ -2,6 +2,7 @@
 
 namespace Codewiser\Folks\Http\Resources;
 
+use Codewiser\Folks\Contracts\UserProviderContract;
 use Codewiser\Folks\Folks;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,7 +16,9 @@ class UserResource extends JsonResource
      */
     public function toArray($request)
     {
-        $schema = Folks::$usersSchema;
+        $schema = app()->call(function (UserProviderContract $userProvider) {
+            return $userProvider->schema();
+        });
 
         $data = parent::toArray($request);
         $response = [];

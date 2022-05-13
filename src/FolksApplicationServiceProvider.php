@@ -2,6 +2,8 @@
 
 namespace Codewiser\Folks;
 
+use App\Actions\Folks\CreateNewUser;
+use App\Actions\Folks\UpdateUserProfileInformation;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -18,7 +20,15 @@ abstract class FolksApplicationServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->authorization();
-        $this->registerRoles();
+
+        Folks::setUsersBuilder(function ($user = null) {
+            return $this->usersBuilder($user);
+        });
+
+        Folks::setUsersSchema($this->usersSchema());
+
+        Folks::createUsersUsing(CreateNewUser::class);
+        Folks::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
     }
 
     /**
@@ -45,24 +55,6 @@ abstract class FolksApplicationServiceProvider extends ServiceProvider
      */
     abstract protected function gate();
 
-    final protected function registerRoles()
-    {
-        Folks::setRoles(function () {
-            return $this->roles();
-        });
-    }
-
-    /**
-     * Return roles' collection.
-     *
-     * Every role should conform to \Codewiser\Folks\Contracts\RoleContract
-     *
-     * Role may be as Model, as Enum.
-     *
-     * @return Collection
-     */
-    abstract protected function roles();
-
     /**
      * Register any application services.
      *
@@ -72,4 +64,7 @@ abstract class FolksApplicationServiceProvider extends ServiceProvider
     {
         //
     }
+
+    abstract protected function usersBuilder(?Authenticatable $user): \Illuminate\Contracts\Database\Eloquent\Builder;
+    abstract protected function usersSchema(): array;
 }

@@ -4,6 +4,7 @@ namespace Codewiser\Folks\Http\Controllers;
 
 use Codewiser\Folks\Contracts\CreatesNewUsers;
 use Codewiser\Folks\Contracts\UpdatesUserProfileInformation;
+use Codewiser\Folks\Contracts\UserProviderContract;
 use Codewiser\Folks\Folks;
 use Codewiser\Folks\Http\Resources\UserResource;
 use Illuminate\Database\Eloquent\Model;
@@ -12,27 +13,33 @@ use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
+    protected UserProviderContract $userProvider;
+
+    public function __construct(UserProviderContract $userProvider)
+    {
+        parent::__construct();
+
+        $this->userProvider = $userProvider;
+    }
 
     public function index(Request $request)
     {
-        $users = Folks::getUsersBuilder($request->user());
+        $this->authorize('viewAny', $this->userProvider->className());
 
-        $classname = get_class($users->getModel());
-
-        $this->authorize('viewAny', $classname);
+        $users = $this->userProvider->builder($request->user());
 
         return UserResource::collection($users->paginate())
             ->additional([
                 'abilities' => [
-                    'create' => Gate::allows('create', $classname)
+                    'create' => Gate::allows('create', $this->userProvider->className())
                 ],
-                'schema' => Folks::$usersSchema
+                'schema' => $this->userProvider->schema()
             ]);
     }
 
     protected function user(Request $request, $user): Model
     {
-        return Folks::getUsersBuilder($request->user())->findOrFail($user);
+        return $this->userProvider->builder($request->user())->findOrFail($user);
     }
 
     protected function resource(Model $user): UserResource
@@ -45,7 +52,7 @@ class UserController extends Controller
                     'restore' => Gate::allows('restore', $user),
                     'forceDelete' => Gate::allows('forceDelete', $user),
                 ],
-                'schema' => Folks::$usersSchema
+                'schema' => $this->userProvider->schema()
             ]);
     }
 
@@ -60,11 +67,9 @@ class UserController extends Controller
 
     public function store(Request $request, CreatesNewUsers $creator)
     {
-        $users = Folks::getUsersBuilder($request->user());
+        $users = $this->userProvider->builder($request->user());
 
-        $classname = get_class($users->getModel());
-
-        $this->authorize('create', $classname);
+        $this->authorize('create', $this->userProvider->className());
 
         $user = $creator->create($request->all());
 

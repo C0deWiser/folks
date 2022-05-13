@@ -4,6 +4,8 @@ namespace Codewiser\Folks;
 
 use Codewiser\Folks\Console\InstallCommand;
 use Codewiser\Folks\Console\PublishCommand;
+use Codewiser\Folks\Contracts\AssetProviderContract;
+use Codewiser\Folks\Contracts\UserProviderContract;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,9 +36,15 @@ class FolksServiceProvider extends ServiceProvider
             define('FOLKS_PATH', realpath(__DIR__ . '/../'));
         }
 
-//        dd(FOLKS_PATH);
-
         $this->mergeConfigFrom(__DIR__ . '/../config/folks.php', 'folks');
+
+        $this->app->singleton(UserProviderContract::class, function () {
+            return new Folks();
+        });
+
+        $this->app->singleton(AssetProviderContract::class, function () {
+            return new Folks();
+        });
     }
 
     /**

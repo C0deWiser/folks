@@ -4,9 +4,11 @@ namespace Codewiser\Folks;
 
 
 use Closure;
+use Codewiser\Folks\Contracts\AssetProviderContract;
 use Codewiser\Folks\Contracts\CreatesNewUsers;
 use Codewiser\Folks\Contracts\UpdatesUserProfileInformation;
 use Codewiser\Folks\Contracts\UserContract;
+use Codewiser\Folks\Contracts\UserProviderContract;
 use Codewiser\Folks\Controls\Label;
 use Codewiser\Folks\Controls\UserControl;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -15,27 +17,27 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
 
-class Folks
+class Folks implements UserProviderContract, AssetProviderContract
 {
     /**
      * The callback that should be used to authenticate Folks users.
      */
-    public static Closure $authUsing;
+    protected static Closure $authUsing;
 
     /**
      * The callback that should provide the collection with available roles.
      */
-    public static Closure $rolesUsing;
+    protected static Closure $rolesUsing;
 
     /**
      * The callback that should provide users builder.
      */
-    public static Closure $usersUsing;
+    protected static Closure $usersUsing;
 
     /**
      * @var Collection|UserControl[]|null
      */
-    public static ?Collection $usersSchema = null;
+    protected static ?Collection $usersSchema = null;
 
     /**
      * Set the callback that should be used to authenticate Folks users.
@@ -50,7 +52,7 @@ class Folks
     /**
      * Determine if the given request can access the Folks dashboard.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      */
     public static function check($request): bool
     {
@@ -72,41 +74,25 @@ class Folks
     /**
      * Set the callback that should be used to get users' builder.
      */
-    public static function usersBuilder(Closure $callback): Folks
+    public static function setUsersBuilder(Closure $callback): Folks
     {
         static::$usersUsing = $callback;
 
         return new static;
     }
 
-    /**
-     *
-     */
-    public static function getUsersBuilder(?Authenticatable $user): Builder
-    {
-        return call_user_func(static::$usersUsing, $user);
-    }
-
-    /**
-     * Determine if Folks's published assets are up-to-date.
-     *
-     * @throws RuntimeException
-     */
-    public static function assetsAreCurrent(): bool
+    public function assetsAreCurrent(): bool
     {
         $publishedPath = public_path('vendor/folks/mix-manifest.json');
 
-        if (! File::exists($publishedPath)) {
+        if (!File::exists($publishedPath)) {
             throw new RuntimeException('Folks assets are not published. Please run: php artisan folks:publish');
         }
 
-        return File::get($publishedPath) === File::get(__DIR__.'/../public/mix-manifest.json');
+        return File::get($publishedPath) === File::get(__DIR__ . '/../public/mix-manifest.json');
     }
 
-    /**
-     * Get the default JavaScript variables for Folks
-     */
-    public static function scriptVariables(): array
+    public function scriptVariables(): array
     {
         return [
             'path' => config('folks.path'),
@@ -116,7 +102,7 @@ class Folks
     /**
      * Register a class / callback that should be used to create new users.
      *
-     * @param  string  $callback
+     * @param string $callback
      * @return void
      */
     public static function createUsersUsing(string $callback)
@@ -127,7 +113,7 @@ class Folks
     /**
      * Register a class / callback that should be used to update user profile information.
      *
-     * @param  string  $callback
+     * @param string $callback
      * @return void
      */
     public static function updateUserProfileInformationUsing(string $callback)
@@ -138,8 +124,23 @@ class Folks
     /**
      * @param array $usersSchema
      */
-    public static function usersSchema(array $usersSchema): void
+    public static function setUsersSchema(array $usersSchema): void
     {
         self::$usersSchema = collect($usersSchema);
+    }
+
+    public function className(): string
+    {
+        return get_class($this->builder(null)->getModel());
+    }
+
+    public function builder(?Authenticatable $user): Builder
+    {
+        return call_user_func(static::$usersUsing, $user);
+    }
+
+    public function schema(): Collection
+    {
+        return self::$usersSchema ?? collect();
     }
 }
