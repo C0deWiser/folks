@@ -24,8 +24,9 @@
 
     <div class="container mb-5">
         <div class="d-flex align-items-center py-4 header">
-            <svg xmlns="http://www.w3.org/2000/svg" class="bi bi-translate logo" viewBox="0 0 24 24">
-                <path class="fill-primary" d="M10 2h4v4h-4V2zM3 7h18v2h-6v13h-2v-6h-2v6H9V9H3V7z"/>
+            <svg xmlns="http://www.w3.org/2000/svg" class="bi bi-person-circle logo" viewBox="0 0 16 16">
+                <path class="fill-primary" d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                <path class="fill-primary" fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
             </svg>
 
             <h4 class="mb-0 ml-2">
@@ -46,10 +47,9 @@
                     </li>
                     <li class="nav-item">
                         <router-link active-class="active" to="/users" class="nav-link d-flex align-items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box" viewBox="0 0 128 128">
-                                <circle id="_x32_" cx="64.5" cy="28" r="21"/>
-                                <path d="M30.4,118.2V85.7c0-1.6,1-2.6,2.6-2.6c1.6,0,2.6,1,2.6,2.6v32.5h57.7V85.7c0-1.6,1-2.6,2.6-2.6c1.6,0,2.6,1,2.6,2.6v32.5
-                                h18.4V80.4c0-14.4-11.8-26.2-26.2-26.2H38.3c-14.4,0-26.2,11.8-26.2,26.2v37.8H30.4z"/>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-square" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                <path d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1v-1c0-1-1-4-6-4s-6 3-6 4v1a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12z"/>
                             </svg>
                             <span>Users</span>
                         </router-link>
